@@ -14,7 +14,8 @@ progress changes and other inconsistencies, including an incomplete change log.
 If you want to review something more coherent, review the latest editors' draft;
 these are published at intervals on the order of weeks.
 
-* [Tip of tree as HTML](https://rawgit.com/w3c/webrtc-ice/master/index.html)
+* [Tip of tree as HTML](https://w3c.github.io/webrtc-ice/)
+
 * [Latest published editor's draft at github](https://w3c.github.io/webrtc-ice/)
 
 ### Useful Links
@@ -24,5 +25,6 @@ The content of this document is discussed at the
 mailing list.
 
 [ICE IETF Working Group](https://tools.ietf.org/wg/ice/)
+
 [Contribution Guidelines](CONTRIBUTING.md)
 
