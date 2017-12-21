@@ -1,6 +1,6 @@
 var respecConfig = {
   specStatus: "ED",
-  prevED: "",
+  prevED: "https://w3c.github.io/webrtc-ice/",
   // if there a publicly available Editor's Draft, this is the link
   edDraftURI: "https://w3c.github.io/webrtc-ice/",
   shortName: "webrtc-ice",
@@ -160,6 +160,16 @@ var respecConfig = {
       ],
       "status": "11 September 2017. Internet Draft (work in progress)",
       "publisher": "IETF"
+    },
+    "WEBRTC-QUIC": {
+      "title": "QUIC API for WebRTC",
+      "href": "https://w3c.github.io/webrtc-quic/",
+      "authors": [
+        "Peter Thatcher",
+        "Bernard Aboba"
+      ],
+      "status": "21 December 2017 (work in progress)",
+      "publisher": "W3C"
     },
     "WEBRTC-STATS": {
       "title": "Identifiers for WebRTC's Statistics API",

@@ -1,0 +1,2396 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <title>ICE API for WebRTC</title>
+  <script src="respec-w3c-common.js" async class="remove"></script>
+  <script src="respec-config.js" class="remove"></script>
+  </script>
+</head>
+<body>
+  <section id="abstract">
+    <p>This document defines a set of ECMAScript APIs in WebIDL to allow construction
+    of an <code><a>RTCIceTransport</a></code> interface in situations where such an
+    interface would not be created in the WebRTC 1.0 API (such as when data is exchanged
+    using QUIC). This specification is being developed in conjunction with protocol
+    specifications developed by the IETF ICE Working Group.</p>
+  </section>
+  <section id="sotd">
+    <p>The API is based on preliminary work done in the W3C ORTC Community Group.</p>
+  </section>
+  <section class="informative" id="intro">
+    <h2>Introduction</h2>
+    <p>This specification extends the WebRTC specification [[!WEBRTC]] to
+    allow construction of an <code><a>RTCIceTransport</a></code> interface 
+    in situations where such an interface would not created in the
+    WebRTC 1.0 API, such as when the WebRTC-QUIC extension [[WEBRTC-QUIC]]
+    is used in a scenario involving QUIC data exchange, but not use
+    of audio, video or the SCTP data channel.</p>  
+  </section>
+  <section id="conformance">
+    <p>This specification defines conformance criteria that apply to a single
+    product: the <dfn>user agent</dfn> that implements the interfaces that it
+    contains.</p>
+    <p>Conformance requirements phrased as algorithms or specific steps may be
+    implemented in any manner, so long as the end result is equivalent. (In
+    particular, the algorithms defined in this specification are intended to be
+    easy to follow, and not intended to be performant.)</p>
+    <p>Implementations that use ECMAScript to implement the APIs defined in
+    this specification MUST implement them in a manner consistent with the
+    ECMAScript Bindings defined in the Web IDL specification [[!WEBIDL-1]], as
+    this specification uses that specification and terminology.</p>
+  </section>
+  <section>
+    <h2>Terminology</h2>
+     <p>The <code><a href=
+      "http://dev.w3.org/html5/spec/webappapis.html#eventhandler">EventHandler</a></code>
+      interface, representing a callback used for event handlers, and the <a href=
+      "http://dev.w3.org/html5/spec/webappapis.html#errorevent"><code><dfn>ErrorEvent</dfn></code></a>
+      interface are defined in [[!HTML51]].</p>
+      <p>The concepts <dfn><a href=
+      "http://dev.w3.org/html5/spec/webappapis.html#queue-a-task">queue a task</a></dfn>,
+      <dfn><a href=
+      "http://dev.w3.org/html5/spec/webappapis.html#fire-a-simple-event">fires a simple
+      event</a></dfn> and <dfn><a href=
+      "http://dev.w3.org/html5/spec/webappapis.html#networking-task-source">networking
+      task source</a></dfn> are defined in [[!HTML51]].</p>
+      <p>The terms <dfn>event</dfn>, <dfn><a href=
+      "http://dev.w2.org/html5/spec/webappapis.html#event-handlers">event
+      handlers</a></dfn> and <dfn><a href=
+      "http://dev.w3.org/html5/spec/webappapis.html#event-handler-event-type">event
+      handler event types</a></dfn> are defined in [[!HTML51]].</p>
+     <p>When referring to exceptions, the terms <dfn><a
+      href="https://www.w3.org/TR/WebIDL-1/#dfn-throw">throw</a></dfn> and
+      <dfn data-dfn-for="exception"><a href=
+      "https://www.w3.org/TR/WebIDL-1/#dfn-create-exception">create</a></dfn> are
+      defined in [[!WEBIDL-1]].</p>
+      <p>The terms <dfn data-lt="fulfill|fulfillment">fulfilled</dfn>, <dfn
+      data-lt="reject|rejection|rejecting">rejected</dfn>,
+      <dfn data-lt="resolve|resolves">resolved</dfn>, <dfn>pending</dfn> and
+      <dfn>settled</dfn> used in the context of Promises are defined in
+      [[!ECMASCRIPT-6.0]].</p>
+      <p>The <dfn><code>RTCDtlsTransport</code></dfn> interface is defined in [[!WEBRTC]].</p> 
+  </section>
+</section>
+  <section id="rtcicegatherer*">
+    <h2><dfn>RTCIceGatherer</dfn> Interface</h2>
+    <p>The <code>RTCIceGatherer</code> gathers local host, server reflexive
+    and relay candidates, as well as enabling the retrieval of local Interactive
+    Connectivity Establishment (ICE) parameters which can be exchanged in signaling. By
+    enabling an endpoint to use a set of local candidates to construct multiple
+    <code><a>RTCIceTransport</a></code> objects, the <code><a>RTCIceGatherer</a></code>
+    enables support for scenarios such as parallel forking.</p>
+    <section id="rtcicegatherer-overview*">
+      <h3>Overview</h3>
+      <p>An <code><a>RTCIceGatherer</a></code> instance can be associated to multiple
+      <code><a>RTCIceTransport</a></code> objects. The <code><a>RTCIceGatherer</a></code>
+      does not prune local candidates until at least one
+      <code><a>RTCIceTransport</a></code> object has become associated and all associated
+      <code><a>RTCIceTransport</a></code> objects are in the <code>completed</code> or
+      <code>failed</code> state.</p>
+      <p>As noted in [[!RFC5245]] Section 7.1.2.2, an incoming connectivity check
+      contains an <code>ICE-CONTROLLING</code> or <code>ICE-CONTROLLED</code> attribute,
+      depending on the role of the ICE agent initiating the check. Since an
+      <code><a>RTCIceGatherer</a></code> object does not have a role, it cannot determine
+      whether to respond to an incoming connectivity check with a 487 (Role Conflict)
+      error; however, it can validate that an incoming connectivity check utilizes the
+      correct local username fragment and password, and if not, can respond with an 401
+      (Unauthorized) error, as described in [[!RFC5389]] Section 10.1.2.</p>
+      <p>For incoming connectivity checks that pass validation, the
+      <code><a>RTCIceGatherer</a></code> <em class="rfc2119" title="MUST">MUST</em>
+      buffer the incoming connectivity checks so as to be able to provide them to
+      associated <code><a>RTCIceTransport</a></code> objects so that they can
+      respond.</p>
+    </section>
+    <section id="rtcicegatherer-operation*">
+      <h3>Operation</h3>
+      <p>An <code><a>RTCIceGatherer</a></code> instance is constructed from an
+      <code><a>RTCIceGatherOptions</a></code> object.</p>
+      <p>An <code><a>RTCIceGatherer</a></code> object in the <code>closed</code> state
+      can be garbage-collected when it is no longer referenced.</p>
+      <p>To validate the <code>options</code> argument in the <code><a>RTCIceGatherer</a></code>
+      constructor, implementations MUST run the following steps:</p>
+      <ol>
+         <li>
+           <p>Let <var>options</var> be the argument passed in the constructor.</p>
+         </li>
+         <li>
+           <p>Let <var>servers</var> be the value of <code><var>options</var>.iceServers</code>.</p>
+         </li>
+         <li>
+           <p>Let <var>validatedServers</var> be an empty list.</p>
+         </li>
+         <li>
+           <p>Run the following steps for each element in <var>servers</var>:</p>
+           <ol>
+             <li>
+               <p>Let <var>server</var> be the current list element.</p>
+             </li>
+             <li>
+               <p>If <code><var>server</var>.urls</code> is a string,
+               let <code><var>server</var>.urls</code> be a list
+               consisting of just that string.</p>
+             </li>
+             <li>
+               <p>For each <var>url</var> in
+               <code><var>server</var>.urls</code> run the following steps:
+               <ol>
+                 <li>
+                   <p>Parse the <var>url</var> using the generic URI syntax
+                   defined in [[!RFC3986]] and obtain the
+                   <var>scheme name</var>. If the parsing based
+                   on the syntax defined in [[!RFC3986]] fails,
+                   <a>throw</a> a <code>SyntaxError</code>.  If
+                   the <var>scheme name</var> is not implemented
+                   by the browser <a>throw</a> a
+                   <code>NotSupportedError</code>. If
+                   <var>scheme name</var> is <code>turn</code> or
+                   <code>turns</code>, and parsing the
+                   <var>url</var> using the syntax defined in
+                   [[!RFC7064]] fails, <a>throw</a> a
+                   <code>SyntaxError</code>. If <var>scheme
+                   name</var> is <code>stun</code> or
+                   <code>stuns</code>, and parsing the
+                   <var>url</var> using the syntax defined in
+                   [[!RFC7065]] fails, <a>throw</a> a
+                   <code>SyntaxError</code>. </p>
+                 </li>
+                 <li>
+                   <p>If <var>scheme name</var> is <code>turn</code> or
+                   <code>turns</code>, and either of
+                   <code><var>server</var>.username</code> or
+                   <code><var>server</var>.credential</code> are omitted,
+                   then <a>throw</a> an <code>InvalidAccessError</code>.</p>
+                 </li>
+                 <li>
+                   <p>If <var>scheme name</var> is <code>turn</code> or
+                   <code>turns</code>, and
+                   <code><var>server</var>.credentialType</code> is
+                   <code>"password"</code>, and
+                   <code><var>server</var>.credential</code> is not a
+                   <span class="idlMemberType"><a>DOMString</a></span>, then
+                   <a>throw</a> an <code>InvalidAccessError</code> and abort these
+                   steps.</p>
+                 </li>
+                 <li>
+                   <p>If <var>scheme name</var> is <code>turn</code> or
+                   <code>turns</code>, and
+                   <code><var>server</var>.credentialType</code> is
+                   <code>"oauth"</code>, and
+                   <code><var>server</var>.credential</code> is not an
+                   <a>RTCOAuthCredential</a>, then <a>throw</a> an
+                   <code>InvalidAccessError</code> and abort these steps.</p>
+                 </li>
+               </ol>
+             </li>
+             <li>
+               <p>Append <var>server</var> to <var>validatedServers</var>.</p>
+             </li>
+           </ol>
+           <p>Let <var>validatedServers</var> be the <dfn id="ice-servers-list">
+           ICE servers list</dfn>.</p>
+    </section>
+    <section id="rtcicegatherer-interface-definition*">
+      <h3>Interface Definition</h3>
+      <div>
+        <pre class="idl">[ Constructor (RTCIceGatherOptions options), Exposed=Window]
+interface RTCIceGatherer : RTCStatsProvider {
+    readonly        attribute RTCIceComponent     component;
+    readonly        attribute RTCIceGathererState state;
+    static sequence&lt;RTCIceServer&gt; getDefaultIceServers ();
+    void                      close ();
+    void                      gather (optional RTCIceGatherOptions options);
+    RTCIceParameters          getLocalParameters ();
+    sequence&lt;RTCIceCandidate&gt; getLocalCandidates ();
+    RTCIceGatherer            createAssociatedGatherer ();
+                    attribute EventHandler        onstatechange;
+                    attribute EventHandler        onerror;
+                    attribute EventHandler        onlocalcandidate;
+};</pre>
+        <section>
+          <h2>Constructors</h2>
+          <dl data-link-for="RTCIceGatherer" data-dfn-for="RTCIceGatherer" class=
+          "constructors">
+            <dt><code><a>RTCIceGatherer</a></code></dt>
+            <dd>
+              <table class="parameters">
+                <tbody>
+                  <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Nullable</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                  <tr>
+                    <td class="prmName">options</td>
+                    <td class="prmType"><code><a>RTCIceGatherOptions</a></code></td>
+                    <td class="prmNullFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmOptFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmDesc"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Attributes</h2>
+          <dl data-link-for="RTCIceGatherer" data-dfn-for="RTCIceGatherer" class=
+          "attributes">
+            <dt><dfn>component</dfn> of type <span class=
+            "idlAttrType"><a>RTCIceComponent</a></span>, readonly</dt>
+            <dd>
+              <p>The component-id of the <code><a>RTCIceGatherer</a></code> object. In
+              <code><a>RTCIceGatherer</a></code> objects returned by
+              <code><a>createAssociatedGatherer</a>()</code> the value of the
+              <code><a>component</a></code> attribute is <code>rtcp</code>. In all other
+              <code><a>RTCIceGatherer</a></code> objects, the value of the
+              <code><a>component</a></code> attribute is <code>rtp</code>.</p>
+            </dd>
+            <dt><dfn><code>state</code></dfn> of type <span class=
+            "idlAttrType"><a>RTCIceGathererState</a></span>, readonly</dt>
+            <dd>
+              <p>The current state of the ICE gatherer.</p>
+            </dd>
+            <dt><dfn><code>onstatechange</code></dfn> of type <span class=
+            "idlAttrType"><a>EventHandler</a></span></dt>
+            <dd>
+              <p>This event handler, of event handler event type
+              <code><a>statechange</a></code>, <em class="rfc2119" title="MUST">MUST</em>
+              be fired any time the <code><a>RTCIceGathererState</a></code> changes.</p>
+            </dd>
+            <dt><dfn><code>onerror</code></dfn> of type <span class=
+            "idlAttrType"><a>EventHandler</a></span></dt>
+            <dd>
+              <p>This event handler, of event handler event type
+              <code><a>icecandidateerror</a></code>, <em class="rfc2119" title=
+              "MUST">MUST</em> be fired if an error occurs in the gathering of ICE
+              candidates (such as if TURN credentials are invalid).</p>
+            </dd>
+            <dt><dfn><code>onlocalcandidate</code></dfn> of type <span class=
+            "idlAttrType"><a>EventHandler</a></span></dt>
+            <dd>
+              <p>This event handler, of event handler event type
+              <code><a>icecandidate</a></code>, uses the
+              <code><a>RTCIceGathererEvent</a></code> interface.
+              It receives events when a new local ICE candidate
+              is available. Since ICE candidate gathering begins
+              once an <code><a>RTCIceGatherer</a></code> object is
+              created, <code>candidate</code> events are queued
+              until an <code>onlocalcandidate</code> event handler
+              is assigned. When the final candidate is gathered,
+              a <code>candidate</code> event occurs with an
+              <code>RTCIceCandidateComplete</code> emitted.</p>
+            </dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Methods</h2>
+          <dl data-link-for="RTCIceGatherer" data-dfn-for="RTCIceGatherer" class=
+          "methods">
+            <dt><dfn><code>getDefaultIceServers</code></dfn></dt>
+            <dd>
+              <p>Returns a list of ICE servers that are configured into the
+              browser. A browser might be configured to use local or private
+              STUN or TURN servers. This method allows an application to learn
+              about these servers and optionally use them.</p>
+              <p class="fingerprint">This list is likely to be persistent and
+              is the same across origins. It thus increases the
+              fingerprinting surface of the browser. In privacy-sensitive
+              contexts, browsers can consider mitigations such as only
+              providing this data to whitelisted origins (or not providing it
+              at all.)</p>
+              <p class="note">Since the use of this information is left to
+              the discretion of application developers, configuring a user
+              agent with these defaults does not per se increase a user's
+              ability to limit the exposure of their IP addresses.</p>
+            </dd>
+            <dt><dfn><code>close</code></dfn></dt>
+            <dd>
+              <p>Prunes all local candidates, and closes the port. Associated
+              <code><a>RTCIceTransport</a></code> objects transition to the
+              <code>disconnected</code> state (unless they were in the
+              <code>failed</code> state). Calling <code>close()</code> when
+              <code>state</code> is <code>closed</code> has no effect.</p>
+              <div>
+                <em>No parameters.</em>
+              </div>
+              <div>
+                <em>Return type:</em> <code>void</code>
+              </div>
+            </dd>
+            <dt><dfn><code>gather</code></dfn></dt>
+            <dd>
+              <p>Gather ICE candidates. If <var>options</var> is omitted, utilize the
+              value of <var>options</var> passed in the constructor. If
+              <code>state</code> is <code>closed</code>, <a>throw</a> an
+              <code>InvalidStateError</code>.</p>
+              <table class="parameters">
+                <tbody>
+                  <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Nullable</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                  <tr>
+                    <td class="prmName">options</td>
+                    <td class="prmType"><code><a>RTCIceGatherOptions</a></code></td>
+                    <td class="prmNullFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmOptTrue"><span role="img" aria-label=
+                    "True">&#10004;</span></td>
+                    <td class="prmDesc"></td>
+                  </tr>
+                </tbody>
+              </table>
+              <div>
+                <em>Return type:</em> <code>void</code>
+              </div>
+            </dd>
+            <dt><code>getLocalParameters</code></dt>
+            <dd>
+              <p><dfn>getLocalParameters()</dfn> obtains the ICE
+              parameters of the <code><a>RTCIceGatherer</a></code>.
+              If <code>state</code> is <code>closed</code>, <a>throw</a> an
+              <code>InvalidStateError</code>.</p>
+              <div>
+                <em>No parameters.</em>
+              </div>
+              <div>
+                <em>Return type:</em> <code><a>RTCIceParameters</a></code>
+              </div>
+            </dd>
+            <dt><dfn><code>getLocalCandidates</code></dfn></dt>
+            <dd>
+              <p>Retrieve the sequence of valid local candidates associated with the
+              <code><a>RTCIceGatherer</a></code>. This retrieves all unpruned local
+              candidates currently known (except for peer reflexive candidates), even if
+              an <code><a>onlocalcandidate</a></code> event hasn't been processed yet.
+              Prior to calling <code><a>gather</a>()</code> an empty list will be
+              returned. If  <code>state</code> is <code>closed</code>, <a>throw</a> an
+              <code>InvalidStateError</code>.</p>
+              <div>
+                <em>No parameters.</em>
+              </div>
+              <div>
+                <em>Return type:</em>
+                <code>sequence</code>&lt;<code><a>RTCIceCandidate</a></code>&gt;
+              </div>
+            </dd>
+            <dt><dfn><code>createAssociatedGatherer</code></dfn></dt>
+            <dd>
+              <p>Create an associated <code><a>RTCIceGatherer</a></code> for RTCP, with
+              the same <code><a>RTCIceParameters</a></code> and
+              <code><a>RTCIceGatherOptions</a></code>. If <code>state</code> is
+              <code>closed</code>, <a>throw</a> an <code>InvalidStateError</code>. If
+              an <code><a>RTCIceGatherer</a></code> calls the method more than once, or
+              if <code><a>component</a></code> is <code>rtcp</code>, <a>throw</a> an
+              <code>InvalidStateError</code>.</p>
+              <div>
+                <em>No parameters.</em>
+              </div>
+              <div>
+                <em>Return type:</em> <code><a>RTCIceGatherer</a></code>
+              </div>
+            </dd>
+          </dl>
+        </section>
+      </div>
+    </section>
+    <section id="rtciceparameters*">
+      <h3><dfn>RTCIceParameters</dfn> Dictionary</h3>
+      <p>The <code>RTCIceParameters</code> dictionary includes the ICE username
+      fragment and password and other ICE-related parameters.</p>
+      <div>
+        <pre class="idl">dictionary RTCIceParameters {
+             DOMString usernameFragment;
+             DOMString password;
+             boolean   iceLite;
+};</pre>
+        <section>
+          <h2>Dictionary <a class="idlType">RTCIceParameters</a> Members</h2>
+          <dl data-link-for="RTCIceParameters" data-dfn-for="RTCIceParameters" class=
+          "dictionary-members">
+            <dt><dfn><code>usernameFragment</code></dfn> of type <span class=
+            "idlMemberType"><a>DOMString</a></span></dt>
+            <dd>
+              <p>ICE username fragment.</p>
+            </dd>
+            <dt><dfn><code>password</code></dfn> of type <span class=
+            "idlMemberType"><a>DOMString</a></span></dt>
+            <dd>
+              <p>ICE password.</p>
+            </dd>
+            <dt><dfn><code>iceLite</code></dfn> of type <span class=
+            "idlMemberType"><a>boolean</a></span></dt>
+            <dd>
+              <p>If only ICE-lite is supported (<code>true</code>) or not
+              (<code>false</code> or unset). Since [[!RTCWEB-TRANSPORT]] Section 3.4
+              requires browser support for full ICE, <code><a>iceLite</a></code> will
+              only be <code>true</code> for a remote peer such as a gateway.
+              <code>getLocalParameters().iceLite</code> MUST NOT be set.</p>
+            </dd>
+          </dl>
+        </section>
+      </div>
+    </section>
+    <section id="rtcicecandidate*">
+      <h3><dfn>RTCIceCandidate</dfn> Dictionary</h3>
+      <p>The <code>RTCIceCandidate</code> dictionary includes information relating
+      to an ICE candidate.</p>
+      <pre class="example highlight">{
+  foundation: "abcd1234",
+  priority: 1694498815,
+  ip: "192.0.2.33",
+  protocol: "udp",
+  port: 10000,
+  type: "host"
+};
+                </pre>
+      <div>
+        <p>The <dfn><code>RTCIceGatherCandidate</code></dfn> provides either an
+        <code><a>RTCIceCandidate</a></code> or an <code><a>RTCIceCandidateComplete</a></code>
+        indication that candidate gathering is complete.</p>
+        <pre class="idl">
+        typedef (RTCIceCandidate or RTCIceCandidateComplete) RTCIceGatherCandidate;</pre>
+        <div class="idlTypedefDesc"></div>
+      </div>
+      <div>
+        <pre class="idl">dictionary RTCIceCandidate {
+             required DOMString              foundation;
+             required unsigned long          priority;
+             required DOMString              ip;
+             required RTCIceProtocol         protocol;
+             required unsigned short         port;
+             required RTCIceCandidateType    type;
+             RTCIceTcpCandidateType tcpType;
+             DOMString              relatedAddress;
+             unsigned short         relatedPort;
+};</pre>
+        <section>
+          <h2>Dictionary <a class="idlType">RTCIceCandidate</a> Members</h2>
+          <dl data-link-for="RTCIceCandidate" data-dfn-for="RTCIceCandidate" class=
+          "dictionary-members">
+            <dt><dfn><code>foundation</code></dfn> of type <span class=
+            "idlMemberType"><a>DOMString</a></span>, required</dt>
+            <dd>
+              <p>A unique identifier that allows ICE to correlate candidates that appear
+              on multiple <code><a>RTCIceTransport</a></code>s.</p>
+            </dd>
+            <dt><dfn><code>priority</code></dfn> of type <span class=
+            "idlMemberType"><a>unsigned long</a></span>, required</dt>
+            <dd>
+              <p>The assigned priority of the candidate. This is automatically populated
+              by the browser.</p>
+            </dd>
+            <dt><dfn><code>ip</code></dfn> of type <span class=
+            "idlMemberType"><a>DOMString</a></span>, required</dt>
+            <dd>
+              <p>The IP address of the candidate.</p>
+            </dd>
+            <dt><dfn><code>protocol</code></dfn> of type <span class=
+            "idlMemberType"><a>RTCIceProtocol</a></span>, required</dt>
+            <dd>
+              <p>The protocol of the candidate (udp/tcp).</p>
+            </dd>
+            <dt><dfn><code>port</code></dfn> of type <span class=
+            "idlMemberType"><a>unsigned short</a></span>, required</dt>
+            <dd>
+              <p>The port for the candidate.</p>
+            </dd>
+            <dt><dfn><code>type</code></dfn> of type <span class=
+            "idlMemberType"><a>RTCIceCandidateType</a></span>, required</dt>
+            <dd>
+              <p>The type of candidate.</p>
+            </dd>
+            <dt><dfn><code>tcpType</code></dfn> of type <span class=
+            "idlMemberType"><a>RTCIceTcpCandidateType</a></span></dt>
+            <dd>
+              <p>The type of TCP candidate. For UDP candidates, this
+              attribute is unset.</p>
+            </dd>
+            <dt><code>relatedAddress</code> of type <span class=
+            "idlMemberType"><a>DOMString</a></span></dt>
+            <dd>
+              <p>For candidates that are derived from others, such as relay or reflexive
+              candidates, the <dfn><code>relatedAddress</code></dfn> refers to the
+              candidate that these are derived from. For host candidates, the
+              <code><a>relatedAddress</a></code> is unset.</p>
+            </dd>
+            <dt><code>relatedPort</code> of type <span class="idlMemberType"><a>unsigned
+            short</a></span></dt>
+            <dd>
+              <p>For candidates that are derived from others, such as relay or reflexive
+              candidates, the <dfn><code>relatedPort</code></dfn> refers to the host
+              candidate that these are derived from. For host candidates, the
+              <code><a>relatedPort</a></code> is unset.</p>
+            </dd>
+          </dl>
+        </section>
+      </div>
+      <section>
+        <h4><dfn>RTCIceProtocol</dfn> Enum</h4>
+        <p>The <code>RTCIceProtocol</code> includes the protocol of the ICE
+        candidate.</p>
+        <div>
+          <pre class="idl">enum RTCIceProtocol {
+    "udp",
+    "tcp"
+};</pre>
+          <table data-link-for="RTCIceProtocol" data-dfn-for="RTCIceProtocol" class=
+          "simple">
+            <tbody>
+              <tr>
+                <th colspan="2">Enumeration description</th>
+              </tr>
+              <tr>
+                <td><dfn><code id="idl-def-RTCIceProtocol.udp">udp</code></dfn></td>
+                <td>
+                  <p>A UDP candidate, as described in [[!RFC5245]].</p>
+                </td>
+              </tr>
+              <tr>
+                <td><dfn><code id="idl-def-RTCIceProtocol.tcp">tcp</code></dfn></td>
+                <td>
+                  <p>A TCP candidate, as described in [[!RFC6544]].</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section>
+        <h4><dfn>RTCIceTcpCandidateType</dfn> Enum</h4>
+        <p>The <code>RTCIceTcpCandidateType</code> includes the type of the
+        ICE TCP candidate, as described in [[!RFC6544]]. Browsers MUST gather active TCP
+        candidates and only active TCP candidates. Servers and other endpoints MAY gather
+        active, passive or so candidates.</p>
+        <div>
+          <pre class="idl">enum RTCIceTcpCandidateType {
+    "active",
+    "passive",
+    "so"
+};</pre>
+          <table data-link-for="RTCIceTcpCandidateType" data-dfn-for=
+          "RTCIceTcpCandidateType" class="simple">
+            <tbody>
+              <tr>
+                <th colspan="2">Enumeration description</th>
+              </tr>
+              <tr>
+                <td><dfn><code id=
+                "idl-def-RTCIceTcpCandidateType.active">active</code></dfn></td>
+                <td>
+                  <p>An active TCP candidate is one for which the transport will attempt
+                  to open an outbound connection but will not receive incoming connection
+                  requests.</p>
+                </td>
+              </tr>
+              <tr>
+                <td><dfn><code id=
+                "idl-def-RTCIceTcpCandidateType.passive">passive</code></dfn></td>
+                <td>
+                  <p>A passive TCP candidate is one for which the transport will receive
+                  incoming connection attempts but not attempt a connection.</p>
+                </td>
+              </tr>
+              <tr>
+                <td><dfn><code id=
+                "idl-def-RTCIceTcpCandidateType.so">so</code></dfn></td>
+                <td>
+                  <p>An so candidate is one for which the transport will attempt to open
+                  a connection simultaneously with its peer.</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section>
+        <h4><dfn>RTCIceCandidateType</dfn> Enum</h4>
+        <p>The <code>RTCIceCandidateType</code> includes the type of the ICE
+        candidate as defined in [[!RFC5245]] section 15.1.</p>
+        <div>
+          <pre class="idl">enum RTCIceCandidateType {
+    "host",
+    "srflx",
+    "prflx",
+    "relay"
+};</pre>
+          <table data-link-for="RTCIceCandidateType" data-dfn-for="RTCIceCandidateType"
+          class="simple">
+            <tbody>
+              <tr>
+                <th colspan="2">Enumeration description</th>
+              </tr>
+              <tr>
+                <td><dfn><code id=
+                "idl-def-RTCIceCandidateType.host">host</code></dfn></td>
+                <td>
+                  <p>A host candidate, as defined in Section 4.1.1.1 of [[!RFC5245]].</p>
+                </td>
+              </tr>
+              <tr>
+                <td><dfn><code id=
+                "idl-def-RTCIceCandidateType.srflx">srflx</code></dfn></td>
+                <td>
+                  <p>A server reflexive candidate, as defined in Section 4.1.1.2 of
+                  [[!RFC5245]].</p>
+                </td>
+              </tr>
+              <tr>
+                <td><dfn><code id=
+                "idl-def-RTCIceCandidateType.prflx">prflx</code></dfn></td>
+                <td>
+                  <p>A peer reflexive candidate, as defined in Section 4.1.1.2 of
+                  [[!RFC5245]].</p>
+                </td>
+              </tr>
+              <tr>
+                <td><dfn><code id=
+                "idl-def-RTCIceCandidateType.relay">relay</code></dfn></td>
+                <td>
+                  <p>A relay candidate, as defined in Section 7.1.3.2.1 of
+                  [[!RFC5245]].</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+    <section id="rtcicecandidatecomplete*">
+      <h3><dfn>RTCIceCandidateComplete</dfn> Dictionary</h3>
+      <p><code>RTCIceCandidateComplete</code> is a dictionary signifying that
+      all <code>RTCIceCandidate</code>s are gathered.</p>
+      <div>
+        <pre class="idl">dictionary RTCIceCandidateComplete {
+             boolean complete = true;
+};</pre>
+        <section>
+          <h2>Dictionary <a class="idlType">RTCIceCandidateComplete</a> Members</h2>
+          <dl data-link-for="RTCIceCandidateComplete" data-dfn-for=
+          "RTCIceCandidateComplete" class="dictionary-members">
+            <dt><dfn><code>complete</code></dfn> of type <span class=
+            "idlMemberType"><a>boolean</a></span>, defaulting to <code>true</code></dt>
+            <dd>
+              <p>This attribute is always present and set to <code>true</code>,
+              indicating that ICE candidate gathering is complete.</p>
+            </dd>
+          </dl>
+        </section>
+      </div>
+    </section>
+    <section id="rtcicegathererstate*">
+      <h3><dfn>RTCIceGathererState</dfn> Enum</h3>
+      <p><code>RTCIceGathererState</code> represents the current state of the
+      ICE gatherer.</p>
+      <div>
+        <pre class="idl">enum RTCIceGathererState {
+    "new",
+    "gathering",
+    "complete",
+    "closed"
+};</pre>
+        <table data-link-for="RTCIceGathererState" data-dfn-for="RTCIceGathererState"
+        class="simple">
+          <tbody>
+            <tr>
+              <th colspan="2">Enumeration description</th>
+            </tr>
+            <tr>
+              <td><dfn><code id="idl-def-RTCIceGathererState.new">new</code></dfn></td>
+              <td>
+                <p>The object has been created but <code>gather()</code> has not been
+                called.</p>
+              </td>
+            </tr>
+            <tr>
+              <td><dfn><code id=
+              "idl-def-RTCIceGathererState.gathering">gathering</code></dfn></td>
+              <td>
+                <p><code>gather()</code> has been called, and the
+                <code><a>RTCIceGatherer</a></code> is in the process of gathering
+                candidates (which includes adding new candidates and removing invalidated
+                candidates).</p>
+              </td>
+            </tr>
+            <tr>
+              <td><dfn><code id=
+              "idl-def-RTCIceGathererState.complete">complete</code></dfn></td>
+              <td>
+                <p>The <code><a>RTCIceGatherer</a></code> has completed gathering. Events
+                such as adding, updating or removing an interface, or adding, changing or
+                removing a TURN server will cause the state to go back to
+                <code>gathering</code> before re-entering <code>complete</code> once all
+                candidate changes are finalized.</p>
+              </td>
+            </tr>
+            <tr>
+              <td><dfn><code id=
+              "idl-def-RTCIceGathererState.closed">closed</code></dfn></td>
+              <td>
+                <p>The <code>closed</code> state can only be entered when
+                the <code><a>RTCIceGatherer</a></code> has been closed
+                intentionally by calling <code>close()</code>. This is a
+                terminal state.</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <section>
+      <h4><dfn>RTCIceGathererIceErrorEvent</dfn></h4>
+      <p>The <code><a>icecandidateerror</a></code> event of the
+      <code><a>RTCIceGatherer</a></code> object uses the
+      <code><a>RTCIceGathererIceErrorEvent</a></code> interface.</p>
+      <div>
+        <pre class="idl">
+        [ Constructor (DOMString type, RTCIceGathererIceErrorEventInit eventInitDict), Exposed=Window]
+interface RTCIceGathererIceErrorEvent : Event {
+    readonly        attribute RTCIceCandidate? hostCandidate;
+    readonly        attribute DOMString        url;
+    readonly        attribute unsigned short   errorCode;
+    readonly        attribute USVString        statusText;
+};</pre>
+        <section>
+          <h2>Constructors</h2>
+          <dl data-link-for="RTCIceGathererIceErrorEvent" data-dfn-for=
+          "RTCIceGathererIceErrorEvent" class="constructors">
+            <dt><code>RTCIceGathererIceErrorEvent</code></dt>
+            <dd>
+              <table class="parameters">
+                <tbody>
+                  <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Nullable</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                  <tr>
+                    <td class="prmName">type</td>
+                    <td class="prmType"><code>DOMString</code></td>
+                    <td class="prmNullFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmOptFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmDesc"></td>
+                  </tr>
+                  <tr>
+                    <td class="prmName">eventInitDict</td>
+                    <td class="prmType">
+                    <code><a>RTCIceGathererIceErrorEventInit</a></code></td>
+                    <td class="prmNullFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmOptFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmDesc"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Attributes</h2>
+          <dl data-link-for="RTCIceGathererIceErrorEvent" data-dfn-for=
+          "RTCIceGathererIceErrorEvent" class="attributes">
+            <dt><dfn><code>hostCandidate</code></dfn> of type <span class=
+            "idlAttrType"><a>RTCIceCandidate</a></span>, readonly , nullable</dt>
+            <dd>
+              <p>The <code><a>RTCIceCandidate</a></code> used to communicate with the
+              STUN or TURN server. On a multihomed system, multiple interfaces may be
+              used to contact the server, and this attribute allows the application to
+              figure out on which one the failure occurred. If the browser is in a
+              privacy mode disallowing host candidates, this attribute will be null.</p>
+              <p>If use of multiple interfaces has been prohibited for privacy reasons,
+              <code><a>hostCandidate</a></code> will be null.</p>
+            </dd>
+            <dt><dfn><code>url</code></dfn> of type <span class=
+            "idlAttrType"><a>DOMString</a></span>, readonly , nullable</dt>
+            <dd>
+              <p>The <code><a>url</a></code> attribute is the STUN or TURN URL
+              identifying the server on which the failure ocurred.</p>
+            </dd>
+            <dt><dfn><code>errorCode</code></dfn> of type <span class=
+            "idlAttrType"><a>unsigned short</a></span>, readonly</dt>
+            <dd>
+              <p>The <code><a>errorCode</a></code> attribute is the numeric STUN error
+              code returned by the STUN or TURN server [[STUN-PARAMETERS]].</p>
+              <p>If no host candidate can reach the server, <code><a>errorCode</a></code>
+              will be set to a value of 701, as this does not conflict with the STUN
+              error code range, and <code><a>hostCandidate</a></code> will be null. This
+              error is only fired once per server URL while in the
+              <code><a>RTCIceGathererState</a></code> of <code>gathering</code>.</p>
+            </dd>
+            <dt><dfn><code>statusText</code></dfn> of type <span class=
+            "idlAttrType"><a>USVString</a></span>, readonly</dt>
+            <dd>
+              <p>The STUN reason text returned by the STUN or TURN server [[STUN-PARAMETERS]].</p>
+              <p>If the server could not be reached, <code><a>statusText</a></code> will
+              be set to an implementation-specific value providing details about the
+              error.</p>
+            </dd>
+          </dl>
+        </section>
+      </div>
+      <div>
+      <p>The <dfn><code>RTCIceGathererIceErrorEventInit</code></dfn> dictionary
+      provides information on ICE gathering errors.</p>
+        <pre class="idl">
+        dictionary RTCIceGathererIceErrorEventInit : EventInit {
+             RTCIceCandidate hostCandidate;
+             DOMString       url;
+             required unsigned short  errorCode;
+             USVString       errorText;
+};</pre>
+        <section>
+          <h2>Dictionary <a class="idlType">RTCIceGathererIceErrorEventInit</a>
+          Members</h2>
+          <dl data-link-for="RTCIceGathererIceErrorEventInit" data-dfn-for=
+          "RTCIceGathererIceErrorEventInit" class="dictionary-members">
+            <dt><dfn><code>hostCandidate</code></dfn> of type <span class=
+            "idlMemberType"><a>RTCIceCandidate</a></span></dt>
+            <dd>
+              <p>The <code><a>RTCIceCandidate</a></code> used to communicate with the
+              STUN or TURN server.</p>
+            </dd>
+            <dt><dfn><code>url</code></dfn> of type <span class=
+            "idlMemberType"><a>DOMString</a></span></dt>
+            <dd>
+              <p>The <code>url</code> attribute is the STUN or TURN URL identifying the
+              server on which the failure ocurred.</p>
+            </dd>
+            <dt><dfn><code>errorCode</code></dfn> of type <span class=
+            "idlMemberType"><a>unsigned short</a></span></dt>
+            <dd>
+              <p>The <code>errorCode</code> attribute is the numeric STUN error code
+              returned by the STUN or TURN server [[STUN-PARAMETERS]].</p>
+            </dd>
+            <dt><dfn><code>errorText</code></dfn> of type <span class=
+            "idlMemberType"><a>USVString</a></span></dt>
+            <dd>
+              <p>The <code>errorText</code> attribute is the STUN reason text returned by
+              the STUN or TURN server [[STUN-PARAMETERS]].</p>
+            </dd>
+          </dl>
+        </section>
+      </div>
+    </section>
+    <section>
+      <h4><dfn>RTCIceGathererEvent</dfn></h4>
+      <p>The <code>icecandidate</code> event of the <code><a>RTCIceGatherer</a></code>
+      object uses the <code><a>RTCIceGathererEvent</a></code> interface.</p>
+      <p>Firing an <code><a>RTCIceGathererEvent</a></code> event named <var>e</var> with
+      an <code><a>RTCIceGatherCandidate</a></code> <var>candidate</var> and URL <var>url</var>
+      means that an event with the name <var>e</var>, which does not bubble (except where
+      otherwise stated) and is not cancelable (except where otherwise stated), and which
+      uses the <code><a>RTCIceGathererEvent</a></code> interface with the
+      <code>candidate</code> attribute set to the new ICE candidate, <em class="rfc2119"
+      title="MUST">MUST</em> be created and dispatched at the given target.</p>
+      <div>
+        <pre class="idl">
+        [ Constructor (DOMString type, RTCIceGathererEventInit eventInitDict), Exposed=Window]
+interface RTCIceGathererEvent : Event {
+    readonly        attribute RTCIceGatherCandidate candidate;
+    readonly        attribute DOMString?            url;
+};</pre>
+        <section>
+          <h2>Constructors</h2>
+          <dl data-link-for="RTCIceGathererEvent" data-dfn-for="RTCIceGathererEvent"
+          class="constructors">
+            <dt><code>RTCIceGathererEvent</code></dt>
+            <dd>
+              <table class="parameters">
+                <tbody>
+                  <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Nullable</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                  <tr>
+                    <td class="prmName">type</td>
+                    <td class="prmType"><code>DOMString</code></td>
+                    <td class="prmNullFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmOptFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmDesc"></td>
+                  </tr>
+                  <tr>
+                    <td class="prmName">eventInitDict</td>
+                    <td class="prmType"><code><a>RTCIceGathererEventInit</a></code></td>
+                    <td class="prmNullFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmOptFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmDesc"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Attributes</h2>
+          <dl data-link-for="RTCIceGathererEvent" data-dfn-for="RTCIceGathererEvent"
+          class="attributes">
+            <dt><dfn><code>candidate</code></dfn> of type <span class=
+            "idlAttrType"><a>RTCIceGatherCandidate</a></span>, readonly</dt>
+            <dd>
+              <p>The <code>candidate</code> attribute is the
+              <code><a>RTCIceGatherCandidate</a></code> object with the new ICE candidate
+              that caused the event. If <code>candidate</code> is of type
+              <code><a>RTCIceCandidateComplete</a></code>, there are no additional
+              candidates.</p>
+            </dd>
+            <dt><dfn><code>url</code></dfn> of type <span class=
+            "idlAttrType"><a>DOMString</a></span>, readonly , nullable</dt>
+            <dd>The URL of the server from which the candidate was obtained.</dd>
+          </dl>
+        </section>
+      </div>
+      <div>
+      <p>The <dfn><code>RTCIceGathererEventInit</code></dfn> dictionary provides
+      information on the <code><a>RTCIceGatherCandidate</a></code>.</p>
+        <pre class="idl">dictionary RTCIceGathererEventInit : EventInit {
+             RTCIceGatherCandidate candidate;
+             DOMString             url;
+};</pre>
+        <section>
+          <h2>Dictionary RTCIceGathererEventInit Members</h2>
+          <dl data-link-for="RTCIceGathererEventInit" data-dfn-for=
+          "RTCIceGathererEventInit" class="dictionary-members">
+            <dt><dfn><code>candidate</code></dfn> of type <span class=
+            "idlMemberType"><a>RTCIceGatherCandidate</a></span></dt>
+            <dd>
+              <p>The ICE candidate that caused the event.</p>
+            </dd>
+            <dt><dfn><code>url</code></dfn> of type <span class=
+            "idlMemberType"><a>DOMString</a></span></dt>
+            <dd>The URL of the server from which the candidate was obtained.</dd>
+          </dl>
+        </section>
+      </div>
+    </section>
+    <section id="rtcicegatheroptions*">
+      <h3><dfn>RTCIceGatherOptions</dfn> Dictionary</h3>
+      <p><code>RTCIceGatherOptions</code> provides options relating to the
+      gathering of ICE candidates.</p>
+      <div>
+        <pre class="idl">dictionary RTCIceGatherOptions {
+             RTCIceGatherPolicy     gatherPolicy;
+             sequence&lt;RTCIceServer&gt; iceServers;
+};</pre>
+        <section>
+          <h2>Dictionary <a class="idlType">RTCIceGatherOptions</a> Members</h2>
+          <dl data-link-for="RTCIceGatherOptions" data-dfn-for="RTCIceGatherOptions"
+          class="dictionary-members">
+            <dt><dfn><code>gatherPolicy</code></dfn> of type <span class=
+            "idlMemberType"><a>RTCIceGatherPolicy</a></span></dt>
+            <dd>
+              <p>The ICE gather policy.</p>
+            </dd>
+            <dt><dfn><code>iceServers</code></dfn> of type <span class=
+            "idlMemberType">sequence&lt;<a>RTCIceServer</a>&gt;</span></dt>
+            <dd>
+              <p>Additional ICE servers to be configured. Since implementations MAY
+              provide default ICE servers, and applications can desire to restrict
+              communications to the local LAN, <var>iceServers</var> need not be set.</p>
+            </dd>
+          </dl>
+        </section>
+      </div>
+    </section>
+    <section id="rtcicegatherpolicy*">
+      <h3><dfn>RTCIceGatherPolicy</dfn> Enum</h3>
+      <p><code>RTCIceGatherPolicy</code> denotes the policy relating to the
+      gathering of ICE candidates.</p>
+      <div>
+        <pre class="idl">enum RTCIceGatherPolicy {
+    "all",
+    "relay"
+};</pre>
+        <table data-link-for="RTCIceGatherPolicy" data-dfn-for="RTCIceGatherPolicy"
+        class="simple">
+          <tbody>
+            <tr>
+              <th colspan="2">Enumeration description</th>
+            </tr>
+            <tr>
+              <td><dfn><code id="idl-def-RTCIceGatherPolicy.all">all</code></dfn></td>
+              <td>
+                  <p>
+                    The <code><a>RTCIceGatherer</a></code> MAY gather any type of
+                    candidate when this value is specified.
+                  </p>
+                  <div class="note">
+                    The implementation may still use its own candidate
+                    filtering policy in order to limit the IP addresses
+                    exposed to the application.
+                  </div>
+              </td>
+            </tr>
+            <tr>
+              <td><dfn><code id=
+              "idl-def-RTCIceGatherPolicy.relay">relay</code></dfn></td>
+              <td>
+                  <p>
+                    The <code><a>RTCIceGatherer</a></code> MUST only gather media relay
+                    candidates such as candidates passing through a TURN server.
+                  </p>
+                  <div class="note">
+                    This can be used to prevent the remote endpoint from learning
+                    the user's IP addresses, which may be desired in certain
+                    use cases. For example, in a "call"-based application, the
+                    application may want to prevent an unknown caller from
+                    learning the callee's IP addresses until the callee has
+                    consented in some way.
+                  </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <section id="rtcicecredentialtype*">
+      <h3><dfn>RTCIceCredentialType</dfn> Enum</h3>
+      <p><code>RTCIceCredentialType</code> represents the type of credential
+      used by a TURN server.</p>
+      <div>
+        <pre class="idl">enum RTCIceCredentialType {
+    "password",
+    "oauth"
+};</pre>
+        <table data-link-for="RTCIceCredentialType" data-dfn-for="RTCIceCredentialType"
+        class="simple">
+          <tbody>
+            <tr>
+              <th colspan="2">Enumeration description</th>
+            </tr>
+            <tr>
+              <td><dfn><code id=
+              "idl-def-RTCIceCredentialType.password">password</code></dfn></td>
+              <td>
+                <p>The credential is a long-term authentication password, as described in
+                [[!RFC5389]], Section 10.2.</p>
+              </td>
+            </tr>
+            <tr>
+              <td><dfn><code id=
+              "idl-def-RTCIceCredentialType.oauth">oauth</code></dfn></td>
+              <td>
+                <p>An OAuth 2.0 based authentication method, as described in
+                [[!RFC7635]]. It uses the OAuth 2.0 Implicit Grant type, with
+                PoP (Proof-of-Possession) Token type, as described in
+                [[!RFC6749]] and [[!OAUTH-POP-KEY-DISTRIBUTION]].</p>
+                <p>The <dfn>OAuth Client</dfn> and the <dfn>Auhorization
+                Server</dfn> roles are defined in [[!RFC6749]] Section 1.1.</p>
+                <p>If [[!RFC7635]] is used in ORTC then the <a>OAuth
+                Client</a> is responsible for refreshing the credential
+                information, and updating the <code><a>RTCIceGatherer</a></code>
+                with fresh new credentials before the <code>accessToken</code>
+                expires.</p>
+                <p>For OAuth Authentication, the <code><a>RTCIceGatherer</a></code>
+                requires three pieces of credential information. The credential
+                is composed of a <code>kid</code>, which the <a>RTCIceServer</a>
+                <code>username</code> member is used for, and
+                <code>macKey</code> and <code> accessToken</code>, which are
+                placed in the <a>RTCOAuthCredential</a> dictionary. All of this
+                information can be extracted from the OAuth response parameters,
+                which are received from the <dfn>Authorization Server</dfn>. The
+                relevant OAuth response parameters are the "kid", the "key", and
+                the "access_token". These can be used to extract all the
+                necessary credential infromation (the <code>kid</code>,
+                <code>macKey</code>, and <code>accessToken</code>) that are
+                required by the <code><a>RTCIceGatherer</a></code> for
+                the Authentication.</p>
+                <p>The [[!OAUTH-POP-KEY-DISTRIBUTION]] defines <dfn>alg</dfn>
+                parameter in Section 4.1 and 6. and describes that if the
+                <a>Authorization Server</a> doesn't have prior knowledge of the
+                capabilities of the client, then the <a>OAuth Client</a> needs
+                to provide information about the <code><a>RTCIceGatherer</a></code>
+                HMAC <a>alg</a> capabilities. This information helps the
+                <a>Authorization Server</a> to generate the approriate HMAC key.
+                The HMAC <a>alg</a> defines the input key length, and HMAC
+                algorithm Familly (e.g. SHA), and HMAC algorithm type (e.g.
+                symmetric/asymmetric).</p>
+                <p>The <a>OAuth Client</a> sends an <code>OAuth Request</code>
+                to the <a>Authorization Server</a> with OAuth param <a>alg</a>
+                and further OAuth related parameters, to get an <code>OAuth
+                Response</code> with the <code>access_token</code>,
+                <code>key</code>, <code>kid</code>, and further OAuth related
+                parameters.</p>
+                <p>However, this specification uses a simplified <a>alg</a>
+                approach. The length of the HMAC key
+                (<code>RTCOAuthCredential.macKey</code>) MAY be any integer number of
+                bytes greater than 20 (160 bits). This negates the need to query the HMAC
+                Algorithm capabilities of the <code><a>RTCIceGatherer</a></code>,
+                and still allows for hash agility as described by [[STUN-BIS]],
+                Section 15.3.</p>
+                <div class="note">According to [[!RFC7635]] Section 4.1, the
+                HMAC key MUST be a symmetric key.</div>
+                <p>Currently the STUN/TURN protocols use only SHA-1 and SHA-2
+                family hash algorithms for Message Integrity Protection, as
+                defined in [[!RFC5389]] Section 15.4, and [[!STUN-BIS]]
+                Section 14.6.</p>
+                <p>When [[!RFC7635]] is used in ORTC, this specification
+                adds the following additional considerations:</p>
+                <p>The <a>OAuth Client</a> SHOULD obtain the mac_key by
+                requesting an <a>alg</a> value of <code>HS256</code>. This will
+                result in a 256-bit HMAC key.</p>
+                <p><code>HS256</code> is defined in [[!RFC7518]] Section 3.1.
+                It is recommended here because:</p>
+                <ul>
+                  <li>The OAuth respose key parameter is received in JWK format
+                  according to [[!OAUTH-POP-KEY-DISTRIBUTION]] Section 4.2.
+                  JWK's algorithms are normatively registered in the IANA
+                  "JSON Web Signature and Encryption Algorithms" registry.</li>
+                  <li>STUN/TURN currently use SHA family HMAC algorithms only.</li>
+                  <li>The key MUST be symmetric, according to [[!RFC7635]].</li>
+                  <li>A 256-bit key is large enough to support all currently
+                  defined STUN message integrity attributes.</li>
+                </ul>
+                <p>More details about OAuth PoP Client can be found in
+                [[!OAUTH-POP-KEY-DISTRIBUTION]] Section 4.</p>
+                <p>More details about <code>Access-Token</code> can be found in
+                [[!RFC7635]], Section 6.2.</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <section>
+        <h4><dfn>RTCOAuthCredential</dfn> Dictionary</h4>
+        <p>The <code>RTCOAuthCredential</code> dictionary is used to describe
+        the OAuth auth credential information which is used by the STUN/TURN
+        client (inside the <code><a>RTCIceGatherer</a></code>) to authenticate
+        against a STUN/TURN server, as described in [[!RFC7635]]. Note that
+        the <code>kid</code> parameter is not located in this dictionary, but
+        in <code>RTCIceServer</code>'s <code>username</code> member.</p>
+        <div>
+          <pre class="idl">dictionary RTCOAuthCredential {
+    required DOMString        macKey;
+    required DOMString        accessToken;
+};</pre>
+          <section>
+            <h2>Dictionary <a class="idlType">RTCOAuthCredential</a> Members
+            </h2>
+            <dl data-link-for="RTCOAuthCredential"
+            data-dfn-for="RTCOAuthCredential" class="dictionary-members">
+              <dt><dfn><code>macKey</code></dfn> of type <span class=
+              "idlMemberType"><a>DOMString</a></span>, required</dt>
+              <dd>
+                <p>The "mac_key", as described in [[!RFC7635]], Section 6.2, in
+                a base64-url encoded format. It is used in STUN message
+                integrity hash calculation (as the password is used in password
+                based authentication). Note that the OAuth response "key"
+                parameter is a JSON Web Key (JWK) or a JWK encrypted with a JWE
+                format. Also note that this is the only OAuth parameter whose
+                value is not used directly, but must be extracted from the "k"
+                parameter value from the JWK, which contains the needed
+                base64-encoded "mac_key".</p>
+              </dd>
+              <dt><dfn><code>accessToken</code></dfn> of type <span class=
+              "idlMemberType"><a>DOMString</a></span>, required</dt>
+              <dd>
+                <p>The "access_token", as described in [[!RFC7635]], Section
+                6.2, in a base64-encoded format. This is an encrypted
+                self-contained token that is opaque to the application.
+                Authenticated encryption is used for message encryption and
+                integrity protection. The access token contains a non-encrypted
+                nonce value, which is used by the Authorization Server for unique
+                mac_key generation. The second part of the token is protected
+                by Authenticated Encryption. It contains the mac_key, a
+                timestamp and a lifetime. The timestamp combined with lifetime
+                provides expiry information; this information describes the
+                time window during which the token credential is valid and
+                accepted by the TURN server.
+                </p>
+              </dd>
+           </dl>
+          </section>
+          </div>
+          <p>An example of an RTCOAuthCredential dictionary is:</p>
+          <pre class="example highlight"><code>{
+    macKey: "WmtzanB3ZW9peFhtdm42NzUzNG0=",
+    accessToken: "AAwg3kPHWPfvk9bDFL936wYvkoctMADzQ5VhNDgeMR3+ZlZ35byg972fW8QjpEl7bx91YLBPFsIhsxloWcXPhA=="
+}</code></pre>
+    </section>
+    <section id="rtciceserver*">
+      <h3><dfn>RTCIceServer</dfn> Dictionary</h3>
+      <p>The <code>RTCIceServer</code> dictionary is used to configure the
+      STUN and/or TURN servers. In network topologies with multiple layers of NATs,
+      it is desirable to have a STUN server between every layer of NATs in addition
+      to the TURN servers to minimize the peer to peer network latency.</p>
+      <div>
+          <pre class="idl">dictionary RTCIceServer {
+    required (DOMString or sequence&lt;DOMString&gt;) urls;
+             DOMString                          username;
+             (DOMString or RTCOAuthCredential)     credential;
+             RTCIceCredentialType               credentialType = "password";
+};</pre>
+        <section>
+          <h2>Dictionary <a class="idlType">RTCIceServer</a> Members</h2>
+          <dl data-link-for="RTCIceServer" data-dfn-for="RTCIceServer" class=
+          "dictionary-members">
+            <dt><dfn><code>urls</code></dfn> of type <span class=
+            "idlMemberType"><a>(DOMString or sequence&lt;DOMString&gt;)</a></span>,
+            required</dt>
+            <dd>
+              <p>STUN or TURN URI(s) as defined in [[!RFC7064]] and [[!RFC7065]] or other
+              URI types.</p>
+            </dd>
+            <dt><dfn><code>username</code></dfn> of type <span class=
+            "idlMemberType"><a>DOMString</a></span></dt>
+            <dd>
+              <p>If this <code><a>RTCIceServer</a></code> object represents a TURN
+              server, then this attribute specifies the username to use with that TURN
+              server.</p>
+            </dd>
+            <dt><dfn><code>credential</code></dfn> of type <span class=
+              "idlMemberType">(<a>DOMString</a> or <a>RTCOAuthCredential</a>)
+              </span></dt>
+            <dd>
+                <p>If this <code><a>RTCIceServer</a></code> object represents a
+                TURN server, then this attribute specifies the credential to
+                use with that TURN server.</p>
+                <p>If <code>credentialType</code> is <code>"password"</code>,
+                <code>credential</code> is a <a>DOMString</a>, and represents a
+                long-term authentication password, as described in
+                [[!RFC5389]], Section 10.2.</p>
+                <p>If <code>credentialType</code> is <code>"oauth"</code>,
+                <code>credential</code> is a <a>RTCOAuthCredential</a>, which
+                contains the OAuth access token and MAC key.</p>
+            </dd>
+            <dt><dfn><code>credentialType</code></dfn> of type <span class=
+            "idlMemberType"><a>RTCIceCredentialType</a></span>, defaulting to
+            <code>"password"</code></dt>
+            <dd>
+              <p>If this <code><a>RTCIceServer</a></code> object represents a TURN
+              Server, then this attribute specifies how <code><a>credential</a></code>
+              should be used when that TURN server requests authorization.</p>
+            </dd>
+          </dl>
+        </section>
+      </div>
+      <p>An example array of <code><a>RTCIceServer</a></code> objects is:</p>
+      <pre class="example highlight"><code>[
+{ urls: "stun:stun1.example.net" },
+{ urls: ["turns:turn.example.org", "turn:turn.example.net"],
+  username: "user",
+  credential: "myPassword",
+  credentialType: "password" },
+     { urls: "turns:turn2.example.net",
+       username: "22BIjxU93h/IgwEb",
+       credential: {
+                       macKey: "WmtzanB3ZW9peFhtdm42NzUzNG0=",
+                       accessToken: "AAwg3kPHWPfvk9bDFL936wYvkoctMADzQ5VhNDgeMR3+ZlZ35byg972fW8QjpEl7bx91YLBPFsIhsxloWcXPhA=="
+                     },
+       credentialType: "oauth" },
+     }
+]</code></pre>
+    </section>
+    <section id="rtcicegatherer-initial-example*">
+      <h3>Example</h3>
+      <pre class="example highlight">
+      // Example to demonstrate use of RTCIceCandidateComplete
+// Include some helper functions
+import {trace, errorHandler, mySendLocalCandidate, myIceGathererStateChange,
+  myIceTransportStateChange, myDtlsTransportStateChange} from 'helper';
+
+// Create ICE gather options
+var gatherOptions = {
+  gatherPolicy: "relay",
+  iceServers: [
+    { urls: "stun:stun1.example.net" },
+    { urls: "turn:turn.example.org", username: "user", credential: "myPassword",
+      credentialType: "password" }
+   ]
+};
+// Create IceGatherer object
+var iceGatherer = new RTCIceGatherer(gatherOptions);
+
+// Handle state changes
+iceGatherer.onstatechange = function(event) {
+  myIceGathererStateChange("iceGatherer", event.state);
+};
+
+// Prepare to signal local candidates
+iceGatherer.onlocalcandidate = function(event) {
+  mySendLocalCandidate(event.candidate);
+};
+
+// Start gathering
+iceGatherer.gather();
+
+// Set up response function
+mySignaller.onResponse = function(responseSignaller, response) {
+  // We may get N responses
+  // ... deal with the N responses as shown in Example 5 of Section 3.11.
+};
+
+mySignaller.send({
+  ice: iceGatherer.getLocalParameters()
+});
+                </pre>
+      <pre class="example highlight">
+      // Helper functions used in all the examples (helper.js)
+export function trace(text) {
+  // This function is used for logging.
+  text = text.trimRight();
+  if (window.performance) {
+    var now = (window.performance.now() / 1000).toFixed(3);
+    console.log(now + ": " + text);
+  } else {
+    console.log(text);
+  }
+}
+
+export function errorHandler(error) {
+  trace("Error encountered: " + error.name);
+}
+
+export function mySendLocalCandidate(candidate, component, kind, parameters) {
+  // Set default values
+  kind = kind || "all";
+  component = component || "rtp";
+  parameters = parameters || null;
+
+  // Signal the local candidate
+  mySignaller.mySendLocalCandidate({
+    candidate: candidate,
+    component: component,
+    kind: kind,
+    parameters: parameters
+  });
+}
+
+export function myIceGathererStateChange(name, state) {
+  switch (state) {
+    case "new":
+      trace("IceGatherer: " + name + " Has been created");
+      break;
+    case "gathering":
+      trace("IceGatherer: " + name + " Is gathering candidates");
+      break;
+    case "complete":
+      trace("IceGatherer: " + name + " Has finished gathering (for now)");
+      break;
+    case "closed":
+      trace("IceGatherer: " + name + " Is closed");
+      break;
+    default:
+      trace("IceGatherer: " + name + " Invalid state");
+  }
+}
+
+export function myIceTransportStateChange(name, state) {
+  switch (state) {
+    case "new":
+      trace("IceTransport: " + name + " Has been created");
+      break;
+    case "checking":
+      trace("IceTransport: " + name + " Is checking");
+      break;
+    case "connected":
+      trace("IceTransport: " + name + " Is connected");
+      break;
+    case "disconnected":
+      trace("IceTransport: " + name + " Is disconnected");
+      break;
+    case "completed":
+      trace("IceTransport: " + name + " Has finished checking (for now)");
+      break;
+    case "failed":
+      trace("IceTransport: " + name + " Has failed");
+      break;
+    case "closed":
+      trace("IceTransport: " + name + " Is closed");
+      break;
+    default:
+      trace("IceTransport: " + name + " Invalid state");
+  }
+}
+
+export function myDtlsTransportStateChange(name, state){
+  switch(state){
+  case "new":
+     trace('DtlsTransport: ' + name + ' Has been created');
+     break;
+  case "connecting":
+     trace('DtlsTransport: ' + name + ' Is connecting');
+     break;
+  case "connected":
+     trace('DtlsTransport: ' + name + ' Is connected');
+     break;
+  case "failed":
+     trace('DtlsTransport: ' + name + ' Has failed');
+     break;
+  case "closed":
+     trace('DtlsTransport: ' + name + ' Is closed');
+     break;
+  default:
+     trace('DtlsTransport: ' + name + ' Invalid state');
+  }
+}
+                </pre>
+    </section>
+  </section>
+  <section id="rtcicetransport*">
+    <h2><dfn>RTCIceTransport</dfn> Interface</h2>
+    <p>The <code>RTCIceTransport</code> allows an application access to
+    information about the Interactive Connectivity Establishment (ICE) transport over
+    which packets are sent and received. In particular, ICE manages peer-to-peer
+    connections which involve state which the application may want to access.</p>
+    <section id="rtcicetransport-overview*">
+      <h3>Overview</h3>
+      <p>An <code><a>RTCIceTransport</a></code> instance is associated to a transport
+      object (such as <code><a>RTCDtlsTransport</a></code>), and provides RTC related
+      methods to it.</p>
+    </section>
+    <section id="rtcicetransport-operation*">
+      <h3>Operation</h3>
+      <p>An <code><a>RTCIceTransport</a></code> instance is constructed (optionally) from
+      an <code><a>RTCIceGatherer</a></code>. If <code>gatherer.state</code> is
+      <code>closed</code> or <code>gatherer.component</code> is <code>rtcp</code>,
+      <a>throw</a> an <code>InvalidStateError</code>.</p>
+      <p>An <code><a>RTCIceTransport</a></code> object in the <code>closed</code> state
+      can be garbage-collected when it is no longer referenced.</p>
+    </section>
+    <section id="rtcicetransport-interface-definition*">
+      <h3>Interface Definition</h3>
+      <div>
+        <pre class="idl">[ Constructor (optional RTCIceGatherer gatherer), Exposed=Window]
+interface RTCIceTransport : RTCStatsProvider {
+    readonly        attribute RTCIceGatherer?      iceGatherer;
+    readonly        attribute RTCIceRole           role;
+    readonly        attribute RTCIceComponent      component;
+    readonly        attribute RTCIceTransportState state;
+    sequence&lt;RTCIceCandidate&gt; getRemoteCandidates ();
+    RTCIceCandidatePair?      getSelectedCandidatePair ();
+    void                      start (RTCIceGatherer gatherer, RTCIceParameters remoteParameters, optional RTCIceRole role = "controlled");
+    void                      stop ();
+    RTCIceParameters?         getRemoteParameters ();
+    RTCIceTransport           createAssociatedTransport ();
+    void                      addRemoteCandidate (RTCIceGatherCandidate remoteCandidate);
+    void                      setRemoteCandidates (sequence&lt;RTCIceCandidate&gt; remoteCandidates);
+                    attribute EventHandler         onstatechange;
+                    attribute EventHandler         oncandidatepairchange;
+};</pre>
+        <section>
+          <h2>Constructors</h2>
+          <dl data-link-for="RTCIceTransport" data-dfn-for="RTCIceTransport" class=
+          "constructors">
+            <dt><code><a>RTCIceTransport</a></code></dt>
+            <dd>
+              <table class="parameters">
+                <tbody>
+                  <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Nullable</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                  <tr>
+                    <td class="prmName">gatherer</td>
+                    <td class="prmType"><code><a>RTCIceGatherer</a></code></td>
+                    <td class="prmNullFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmOptTrue"><span role="img" aria-label=
+                    "True">&#10004;</span></td>
+                    <td class="prmDesc"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Attributes</h2>
+          <dl data-link-for="RTCIceTransport" data-dfn-for="RTCIceTransport" class=
+          "attributes">
+            <dt><dfn><code>iceGatherer</code></dfn> of type <span class=
+            "idlAttrType"><a>RTCIceGatherer</a></span>, readonly , nullable</dt>
+            <dd>
+              <p>The <code>iceGatherer</code> attribute is set to the value of
+              <var>gatherer</var> if passed in the constructor or in the latest call to
+              <code>start()</code>.</p>
+            </dd>
+            <dt><dfn><code>role</code></dfn> of type <span class=
+            "idlAttrType"><a>RTCIceRole</a></span>, readonly</dt>
+            <dd>
+              <p>The current role of the ICE transport.</p>
+            </dd>
+            <dt><dfn>component</dfn> of type <span class=
+            "idlAttrType"><a>RTCIceComponent</a></span>, readonly</dt>
+            <dd>
+              <p>The component-id of the <code><a>RTCIceTransport</a></code> object. In
+              <code><a>RTCIceTransport</a></code> objects returned by
+              <code><a>createAssociatedTransport</a>()</code>, the value of
+              <code><a>component</a></code> is <code>rtcp</code>. In all other
+              <code><a>RTCIceTransport</a></code> objects, the value of
+              <code><a>component</a></code> is <code>rtp</code>.</p>
+            </dd>
+            <dt><dfn><code>state</code></dfn> of type <span class=
+            "idlAttrType"><a>RTCIceTransportState</a></span>, readonly</dt>
+            <dd>
+              <p>The current state of the ICE transport.</p>
+            </dd>
+            <dt><dfn><code>onstatechange</code></dfn> of type <span class=
+            "idlAttrType"><a>EventHandler</a></span></dt>
+            <dd>
+              <p>This event handler, of event handler event type
+              <code><a>statechange</a></code>, <em class="rfc2119" title="MUST">MUST</em>
+              be fired any time the <code><a>RTCIceTransportState</a></code> changes.</p>
+            </dd>
+            <dt><dfn><code>oncandidatepairchange</code></dfn> of type <span class=
+            "idlAttrType"><a>EventHandler</a></span></dt>
+            <dd>
+              <p>This event handler, of event handler type
+              <code><a>icecandidatepairchange</a></code>, uses the
+              <code><a>RTCIceCandidatePairChangedEvent</a></code> interface. It
+              <em class="rfc2119" title="MUST">MUST</em> be supported by all objects
+              implementing the <code><a>RTCIceTransport</a></code> interface. It is
+              called any time the selected <code><a>RTCIceCandidatePair</a></code>
+              changes.</p>
+            </dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Methods</h2>
+          <dl data-link-for="RTCIceTransport" data-dfn-for="RTCIceTransport" class=
+          "methods">
+            <dt><dfn><code>getRemoteCandidates</code></dfn></dt>
+            <dd>
+              <p>Retrieve the sequence of candidates associated with the remote
+              <code><a>RTCIceTransport</a></code>. Only returns the candidates previously
+              added using <code><a>setRemoteCandidates</a>()</code> or
+              <code><a>addRemoteCandidate</a>()</code>. If there are no remote
+              candidates, an empty list is returned.</p>
+              <div>
+                <em>No parameters.</em>
+              </div>
+              <div>
+                <em>Return type:</em>
+                <code>sequence</code>&lt;<code><a>RTCIceCandidate</a></code>&gt;
+              </div>
+            </dd>
+            <dt><dfn><code>getSelectedCandidatePair</code></dfn></dt>
+            <dd>
+              <p>Retrieves the selected candidate pair on which packets are sent. If
+              there is no selected pair yet, or consent [[!RFC7675]] is lost on the
+              selected pair, NULL is returned.</p>
+              <div>
+                <em>No parameters.</em>
+              </div>
+              <div>
+                <em>Return type:</em> <code><a>RTCIceCandidatePair</a></code>, nullable
+              </div>
+            </dd>
+            <dt><dfn><code>start</code></dfn></dt>
+            <dd>
+              <p>As noted in [[!RFC5245]] Section 7.1.2.3, an incoming connectivity check
+              utilizes the local/remote username fragment and the local password, whereas
+              an outgoing connectivity check utilizes the local/remote username fragment
+              and the remote password. Since <code>start()</code> provides role
+              information, as well as the remote username fragment and password, once
+              <code>start()</code> is called an <code><a>RTCIceTransport</a></code>
+              object can respond to incoming connectivity checks based on its
+              configured role. Since <code>start()</code> enables candidate pairs
+              to be formed, it also enables initiating connectivity checks.</p>
+              <p>When <code>start()</code> is called, the following
+              steps MUST be run:<p>
+              <ol>
+                <li>
+                  If <code><var>gatherer</var>.component</code> has a value
+                  different from <code>component</code>, <a>throw</a> an
+                  <code>InvalidParameters</code>.
+                </li>
+                <li>
+                  If <code>state</code> or <code><var>gatherer</var>.state</code>
+                  is <code>closed</code>, <a>throw</a> an <code>InvalidStateError</code>.
+                </li>
+                <li>
+                  If <code><var>remoteParameters</var>.usernameFragment</code>
+                  or <code><var>remoteParameters</var>.password</code> is unset,
+                  <a>throw</a> an <code>InvalidParameters</code>.
+                </li>
+                <li>
+                  If <code>start()</code> is called again and
+                  <code><var>role</var></code> is changed, <a>throw</a> an
+                  <code>InvalidParameters</code>.
+                </li>
+                <li>
+                  If <code>start()</code> is called again with the same
+                  values of <code><var>gatherer</var></code> and
+                  <code><var>remoteParameters</var></code>, this has
+                  no effect.
+                </li>
+                <li>
+                  If <code>start()</code> is called for the first time
+                  and either <code><var>gatherer</var></code> was not
+                  passed in the constructor or the value of
+                  <code><var>gatherer</var></code> is unchanged, if
+                  there are remote candidates, set <code>state</code>
+                  to <code>checking</code> and start connectivity checks.
+                  If there are no remote candidates, <code>state</code>
+                  remains <code>new</code>.
+                </li>
+                <li>
+                  If <code>start()</code> is called for the first time
+                  and the value of <code><var>gatherer</var></code>
+                  passed as an argument is different from that passed
+                  in the constructor, flush local candidates.  If there
+                  are remote candidates, set <code>state</code> to
+                  <code>checking</code> and start connectivity checks.
+                  If there are no remote candidates, <code>state</code>
+                  remains <code>new</code>.
+                </li>
+                <li>
+                  If <code>start()</code> is called again with the same
+                  value of <code><var>gatherer</var></code> but the value
+                  of <code><var>remoteParameters</var></code> has changed,
+                  local candidates are kept, remote candidates are flushed,
+                  candidate pairs are flushed and <code>state</code>
+                  transitions to <code>new</code>.
+                </li>
+                <li>
+                  If <code>start()</code> is called again with a new value
+                  of <code><var>gatherer</var></code> but the value of
+                  <code><var>remoteParameters</var></code> is unchanged,
+                  local candidates are flushed, candidate pairs are flushed,
+                  new candidate pairs are formed with existing remote candidates,
+                  and <code>state</code> transitions to <code>checking</code>.
+              </li>
+              <li>
+                If <code>start()</code> is called again with new values of
+                <code><var>gatherer</var></code> and
+                <code><var>remoteParameters</var></code>, local
+                candidates are flushed, remote candidates are flushed,
+                candidate pairs are flushed and <code>state</code> transitions
+                to <code>new</code>.
+               </li>
+              </ol>
+              <table class="parameters">
+                <tbody>
+                  <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Nullable</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                  <tr>
+                    <td class="prmName">gatherer</td>
+                    <td class="prmType"><code><a>RTCIceGatherer</a></code></td>
+                    <td class="prmNullFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmOptFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmDesc"></td>
+                  </tr>
+                  <tr>
+                    <td class="prmName">remoteParameters</td>
+                    <td class="prmType"><code><a>RTCIceParameters</a></code></td>
+                    <td class="prmNullFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmOptFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmDesc"></td>
+                  </tr>
+                  <tr>
+                    <td class="prmName">role</td>
+                    <td class="prmType"><code><a>RTCIceRole</a></code> = <code>controlled</code></td>
+                    <td class="prmNullFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmOptTrue"><span role="img" aria-label=
+                    "True">&#10004;</span></td>
+                    <td class="prmDesc"></td>
+                  </tr>
+                </tbody>
+              </table>
+              <div>
+                <em>Return type:</em> <code>void</code>
+              </div>
+            </dd>
+            <dt><dfn><code>stop</code></dfn></dt>
+            <dd>
+              <p>Irreversibly stops the
+              <code><a>RTCIceTransport</a></code>. When
+              <code>stop</code> is called, the following
+              steps MUST be run:<p>
+              <ol>
+                <li>
+                  Let <var>iceTransport</var> be the
+                  <code><a>RTCIceTransport</a></code> object on
+                  which the <code>stop</code> method is invoked.
+                </li>
+                <li>
+                  If <code><var>iceTransport</var>.state</code> is
+                  <code>closed</code>, abort these steps.
+                </li>
+                <li>
+                  Set <code><var>iceTransport</var>.state</code> to
+                  <code>closed</code>.
+                </li>
+                <li>
+                  Let <var>controller</var> be the
+                  <code><a>RTCIceTransportController</a></code> object
+                  that <var>iceTransport</var> has been added to.
+                </li>
+                <li>
+                  Remove <var>iceTransport</var> from
+                  <var>controller</var>.
+                </li>
+                <li>
+                  Fire a simple event <code>statechange</code>
+                  at <var>iceTransport</var>.
+                </li>
+              </ol>
+              <div>
+                <em>No parameters.</em>
+              </div>
+              <div>
+                <em>Return type:</em> <code>void</code>
+              </div>
+            </dd>
+            <dt><code>getRemoteParameters</code></dt>
+            <dd>
+              <p><dfn>getRemoteParameters()</dfn> obtains
+              the current ICE parameters of the remote
+              <code><a>RTCIceTransport</a></code>.</p>
+              <div>
+                <em>No parameters.</em>
+              </div>
+              <div>
+                <em>Return type:</em> <code><a>RTCIceParameters</a></code>, nullable
+              </div>
+            </dd>
+            <dt><dfn><code>createAssociatedTransport</code></dfn></dt>
+            <dd>
+              <p>Create an associated <code><a>RTCIceTransport</a></code> for RTCP. If
+              called more than once for the same component, or if <var>state</var> is
+              <code>closed</code>, <a>throw</a> an <code>InvalidStateError</code>. If
+              called when <code><a>component</a></code> is <code>rtcp</code>, <a>throw</a>
+              an <code>InvalidStateError</code>.</p>
+              <div>
+                <em>No parameters.</em>
+              </div>
+              <div>
+                <em>Return type:</em> <code><a>RTCIceTransport</a></code>
+              </div>
+            </dd>
+            <dt><dfn><code>addRemoteCandidate</code></dfn></dt>
+            <dd>
+              <p>Add a remote candidate associated with the remote
+              <code><a>RTCIceTransport</a></code>. If <code>state</code> is
+              <code>closed</code>, <a>throw</a> an <code>InvalidStateError</code>.
+              When the remote <code><a>RTCIceGatherer</a></code> emits its final
+              candidate, <code><a>addRemoteCandidate</a>()</code> should be called with
+              an <code><a>RTCIceCandidateComplete</a></code> dictionary as an argument,
+              so that the local <code><a>RTCIceTransport</a></code> can know there are no
+              more remote candidates expected, and can enter the <code>completed</code>
+              state.</p>
+              <table class="parameters">
+                <tbody>
+                  <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Nullable</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                  <tr>
+                    <td class="prmName">remoteCandidate</td>
+                    <td class="prmType"><code><a>RTCIceGatherCandidate</a></code></td>
+                    <td class="prmNullFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmOptFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmDesc"></td>
+                  </tr>
+                </tbody>
+              </table>
+              <div>
+                <em>Return type:</em> <code>void</code>
+              </div>
+            </dd>
+            <dt><dfn><code>setRemoteCandidates</code></dfn></dt>
+            <dd>
+              <p>Set the sequence of candidates associated with the remote
+              <code><a>RTCIceTransport</a></code>. If <code>state</code> is
+              <code>closed</code>, <a>throw</a> an <code>InvalidStateError</code>.</p>
+              <table class="parameters">
+                <tbody>
+                  <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Nullable</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                  <tr>
+                    <td class="prmName">remoteCandidates</td>
+                    <td class="prmType">
+                    <code>sequence</code>&lt;<code><a>RTCIceCandidate</a></code>&gt;</td>
+                    <td class="prmNullFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmOptFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmDesc"></td>
+                  </tr>
+                </tbody>
+              </table>
+              <div>
+                <em>Return type:</em> <code>void</code>
+              </div>
+            </dd>
+          </dl>
+        </section>
+      </div>
+    </section>
+    <section id="rtcicecomponent*">
+      <h3><dfn>RTCIceComponent</dfn> Enum</h3>
+      <p><code>RTCIceComponent</code> contains the component-id of the
+      <code><a>RTCIceTransport</a></code>, which will be <code>rtp</code> unless RTP and
+      RTCP are not multiplexed and the <code><a>RTCIceTransport</a></code> object was
+      returned by <code>createAssociatedTransport()</code>.</p>
+      <div>
+        <pre class="idl">enum RTCIceComponent {
+    "rtp",
+    "rtcp"
+};</pre>
+        <table data-link-for="RTCIceComponent" data-dfn-for="RTCIceComponent" class=
+        "simple">
+          <tbody>
+            <tr>
+              <th colspan="2">Enumeration description</th>
+            </tr>
+            <tr>
+              <td><dfn><code id="idl-def-RTCIceComponent.rtp">rtp</code></dfn></td>
+              <td>
+                <p>The RTP component ID, defined (as '1') in [[!RFC5245]] Section
+                4.1.1.1. Protocols multiplexed with RTP (e.g. SCTP data channel) share
+                its component ID.</p>
+              </td>
+            </tr>
+            <tr>
+              <td><dfn><code id="idl-def-RTCIceComponent.rtcp">rtcp</code></dfn></td>
+              <td>
+                <p>The RTCP component ID, defined (as '2') in [[!RFC5245]] Section
+                4.1.1.1.</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <section id="rtcicerole*">
+      <h3><dfn>RTCIceRole</dfn> Enum</h3>
+      <p><code>RTCIceRole</code> contains the current role of the ICE
+      transport.</p>
+      <div>
+        <pre class="idl">enum RTCIceRole {
+    "controlling",
+    "controlled"
+};</pre>
+        <table data-link-for="RTCIceRole" data-dfn-for="RTCIceRole" class="simple">
+          <tbody>
+            <tr>
+              <th colspan="2">Enumeration description</th>
+            </tr>
+            <tr>
+              <td><dfn><code id=
+              "idl-def-RTCIceRole.controlling">controlling</code></dfn></td>
+              <td>
+                <p>controlling state</p>
+              </td>
+            </tr>
+            <tr>
+              <td><dfn><code id=
+              "idl-def-RTCIceRole.controlled">controlled</code></dfn></td>
+              <td>
+                <p>controlled state</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <section id="rtcicetransportstate*">
+      <h3><dfn>RTCIceTransportState</dfn> Enum</h3>
+      <p><code>RTCIceTransportState</code> represents the current state of the
+      ICE transport.</p>
+      <div>
+        <pre class="idl">enum RTCIceTransportState {
+    "new",
+    "checking",
+    "connected",
+    "completed",
+    "disconnected",
+    "failed",
+    "closed"
+};</pre>
+        <table data-link-for="RTCIceTransportState" data-dfn-for="RTCIceTransportState"
+        class="simple">
+          <tbody>
+            <tr>
+              <th colspan="2">Enumeration description</th>
+            </tr>
+            <tr>
+              <td><dfn><code id="idl-def-RTCIceTransportState.new">new</code></dfn></td>
+              <td>
+                <p>The <code><a>RTCIceTransport</a></code> object is waiting for remote
+                candidates to be supplied. In this state the
+                <code><a>RTCIceTransport</a></code> object can respond to incoming
+                connectivity checks.</p>
+              </td>
+            </tr>
+            <tr>
+              <td><dfn><code id=
+              "idl-def-RTCIceTransportState.checking">checking</code></dfn></td>
+              <td>
+                <p>The <code><a>RTCIceTransport</a></code> has received at least one
+                remote candidate, and a local and remote
+                <code><a>RTCIceCandidateComplete</a></code> dictionary was not added as
+                the last candidate. In this state the <code><a>RTCIceTransport</a></code>
+                is checking candidate pairs but has not yet found a successful candidate
+                pair, or consent checks [[!RFC7675]] have failed on all previously
+                successful candidate pairs.</p>
+              </td>
+            </tr>
+            <tr>
+              <td><dfn><code id=
+              "idl-def-RTCIceTransportState.connected">connected</code></dfn></td>
+              <td>
+                <p>The <code><a>RTCIceTransport</a></code> has received a response to an
+                outgoing connectivity check, or has received incoming DTLS/media after a
+                successful response to an incoming connectivity check, but is still
+                checking other candidate pairs to see if there is a better connection. In
+                this state outgoing media is permitted. If consent checks [[!RFC7675]]
+                fail on the connection in use, and there are no other successful
+                candidate pairs available, then the state transitions to
+                <code>checking</code> (if there are candidate pairs remaining to be
+                checked) or <code>disconnected</code> (if there are no candidate pairs to
+                check, but the peer is still gathering and/or waiting for additional
+                remote candidates).</p>
+              </td>
+            </tr>
+            <tr>
+              <td><dfn><code id=
+              "idl-def-RTCIceTransportState.completed">completed</code></dfn></td>
+              <td>
+                <p>A local and remote <code><a>RTCIceCandidateComplete</a></code>
+                dictionary was added as the last candidate to the
+                <code><a>RTCIceTransport</a></code> and all appropriate candidate pairs
+                have been tested and at least one functioning candidate pair has been
+                found. If consent checks [[!RFC7675]] subsequently fail on all successful
+                candidate pairs, the state transitions to <code>failed</code>.</p>
+              </td>
+            </tr>
+            <tr>
+              <td><dfn><code id=
+              "idl-def-RTCIceTransportState.disconnected">disconnected</code></dfn></td>
+              <td>
+                <p>Connectivity is currently lost for this <code><a>RTCIceTransport</a></code>.
+                The <code><a>RTCIceTransport</a></code> has received at least one
+                local and remote candidate, and a local and remote
+                <code><a>RTCIceCandidateComplete</a></code> dictionary was not added as
+                the last candidate, but all appropriate candidate pairs thus far have
+                been tested and failed, or consent checks [[!RFC7675]] once successful,
+                have repeatedly failed to receive a response.  At the implementation's
+                discretion, this state may be entered prior to consent failure, and
+                therefore could resolve itself without action.  Other candidate pairs
+                may become available for testing as new candidates are trickled,
+                and a temporary consent failure could resolve itself, therefore
+                the <code>failed</code>state has not been reached.</p>
+              </td>
+            </tr>
+            <tr>
+              <td><dfn><code id=
+              "idl-def-RTCIceTransportState.failed">failed</code></dfn></td>
+              <td>
+                <p>A local and remote <code><a>RTCIceCandidateComplete</a></code>
+                dictionary was added as the last candidate to the
+                <code><a>RTCIceTransport</a></code> and all appropriate candidate pairs
+                have either failed connectivity checks or have lost consent.</p>
+              </td>
+            </tr>
+            <tr>
+              <td><dfn><code id=
+              "idl-def-RTCIceTransportState.closed">closed</code></dfn></td>
+              <td>
+                <p>The <code><a>RTCIceTransport</a></code> has shut down and is no longer
+                responding to STUN requests.</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Some example transitions might be:</p>
+      <ul>
+        <li>new RTCIceTransport(): <code>new</code></li>
+        <li>(<code>new</code>, remote candidates received): <code>checking</code></li>
+        <li>(<code>checking</code>, found usable connection): <code>connected</code></li>
+        <li>(<code>checking</code>, checks fail but gathering still in progress):
+        <code>disconnected</code></li>
+        <li>(<code>checking</code>, gave up): <code>failed</code></li>
+        <li>(<code>disconnected</code>, new local candidates): <code>checking</code></li>
+        <li>(<code>connected</code>, finished all checks): <code>completed</code></li>
+        <li>(<code>completed</code>, lost connectivity): <code>disconnected</code></li>
+        <li>(any state, ICE restart occurs): <code>new</code></li>
+        <li>close(): <code>closed</code></li>
+      </ul>
+      <figure>
+        <img alt="The non-normative RTCIceTransportState transition diagram" src=
+        "images/ortc-icetransportstate.svg" style="width:100%">
+        <figcaption>
+          Non-normative ICE transport state transition diagram
+        </figcaption>
+      </figure>
+    </section>
+    <section id="rtcicecandidatepairchangedevent-interface-definition*">
+      <h3><dfn>RTCIceCandidatePairChangedEvent</dfn></h3>
+      <p>The <code>icecandidatepairchange</code> event of the
+      <code><a>RTCIceTransport</a></code> object uses the
+      <code><a>RTCIceCandidatePairChangedEvent</a></code> interface.</p>
+      <p>Firing an <code><a>RTCIceCandidatePairChangedEvent</a></code> event named
+      <var>e</var> with an <code><a>RTCIceCandidatePair</a></code> <var>pair</var> means
+      that an event with the name <var>e</var>, which does not bubble (except where
+      otherwise stated) and is not cancelable (except where otherwise stated), and which
+      uses the <code><a>RTCIceCandidatePairChangedEvent</a></code> interface with
+      <var>pair</var> set to the selected <code><a>RTCIceCandidatePair</a></code>,
+      <em class="rfc2119" title="MUST">MUST</em> be created and dispatched at the given
+      target.</p>
+      <div>
+        <pre class="idl">
+        [ Constructor (DOMString type, RTCIceCandidatePairChangedEventInit eventInitDict), Exposed=Window]
+interface RTCIceCandidatePairChangedEvent : Event {
+    readonly        attribute RTCIceCandidatePair pair;
+};</pre>
+        <section>
+          <h2>Constructors</h2>
+          <dl data-link-for="RTCIceCandidatePairChangedEvent" data-dfn-for=
+          "RTCIceCandidatePairChangedEvent" class="constructors">
+            <dt><code>RTCIceCandidatePairChangedEvent</code></dt>
+            <dd>
+              <table class="parameters">
+                <tbody>
+                  <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Nullable</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                  <tr>
+                    <td class="prmName">type</td>
+                    <td class="prmType"><code>DOMString</code></td>
+                    <td class="prmNullFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmOptFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmDesc"></td>
+                  </tr>
+                  <tr>
+                    <td class="prmName">eventInitDict</td>
+                    <td class="prmType">
+                    <code><a>RTCIceCandidatePairChangedEventInit</a></code></td>
+                    <td class="prmNullFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmOptFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmDesc"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Attributes</h2>
+          <dl data-link-for="RTCIceCandidatePairChangedEvent" data-dfn-for=
+          "RTCIceCandidatePairChangedEvent" class="attributes">
+            <dt><dfn><code>pair</code></dfn> of type <span class=
+            "idlAttrType"><a>RTCIceCandidatePair</a></span>, readonly</dt>
+            <dd>
+              <p>The <code>pair</code> attribute is the selected
+              <code><a>RTCIceCandidatePair</a></code> that caused the event.</p>
+            </dd>
+          </dl>
+        </section>
+      </div>
+      <div>
+      <p>The <dfn><code>RTCIceCandidatePairChangedEventInit</code></dfn> dictionary
+      provides information on the newly selected <code>RTCIceCandidatePair</code>.</p>
+        <pre class="idl">
+        dictionary RTCIceCandidatePairChangedEventInit : EventInit {
+             RTCIceCandidatePair pair;
+};</pre>
+        <section>
+          <h2>Dictionary <a class="idlType">RTCIceCandidatePairChangedEventInit</a>
+          Members</h2>
+          <dl data-link-for="RTCIceCandidatePairChangedEventInit" data-dfn-for=
+          "RTCIceCandidatePairChangedEventInit" class="dictionary-members">
+            <dt><dfn><code>pair</code></dfn> of type <span class=
+            "idlMemberType"><a>RTCIceCandidatePair</a></span></dt>
+            <dd>
+              <p>The <code>pair</code> attribute is the selected
+              <code><a>RTCIceCandidatePair</a></code> that caused the event.</p>
+            </dd>
+          </dl>
+        </section>
+      </div>
+    </section>
+    <section id="rtcicecandidatepair*">
+      <h3><dfn>RTCIceCandidatePair</dfn> Dictionary</h3>
+      <p>The <code>RTCIceCandidatePair</code> contains the currently selected
+      ICE candidate pair.</p>
+      <div>
+        <pre class="idl">dictionary RTCIceCandidatePair {
+             RTCIceCandidate local;
+             RTCIceCandidate remote;
+};</pre>
+        <section>
+          <h2>Dictionary <a class="idlType">RTCIceCandidatePair</a> Members</h2>
+          <dl data-link-for="RTCIceCandidatePair" data-dfn-for="RTCIceCandidatePair"
+          class="dictionary-members">
+            <dt><dfn><code>local</code></dfn> of type <span class=
+            "idlMemberType"><a>RTCIceCandidate</a></span></dt>
+            <dd>
+              <p>The local ICE candidate.</p>
+            </dd>
+            <dt><dfn><code>remote</code></dfn> of type <span class=
+            "idlMemberType"><a>RTCIceCandidate</a></span></dt>
+            <dd>
+              <p>The remote ICE candidate.</p>
+            </dd>
+          </dl>
+        </section>
+      </div>
+    </section>
+    <section id="rtcicegatherer-example*">
+      <h3>Example</h3>
+      <pre class="example highlight">
+      // Example to demonstrate forking when RTP and RTCP are not multiplexed,
+// so that both RTP and RTCP IceGatherer and IceTransport objects are needed.
+// Include some helper functions
+import {trace, errorHandler, mySendLocalCandidate, myIceGathererStateChange,
+  myIceTransportStateChange, myDtlsTransportStateChange} from 'helper';
+
+// Create ICE gather options
+var gatherOptions = {
+  gatherPolicy: "relay",
+  iceServers: [
+    { urls: "stun:stun1.example.net" },
+    { urls: "turn:turn.example.org", username: "user", credential: "myPassword",
+      credentialType: "password" }
+   ]
+};
+
+// Create ICE gatherer objects
+var iceRtpGatherer = new RTCIceGatherer(gatherOptions);
+var iceRtcpGatherer = iceRtpGatherer.createAssociatedGatherer();
+
+// Prepare to signal local candidates
+iceRtpGatherer.onlocalcandidate = function(event) {
+  mySendLocalCandidate(event.candidate, "rtp", "audio",
+    iceRtpGatherer.getLocalParameters());
+};
+
+iceRtcpGatherer.onlocalcandidate = function(event) {
+  mySendLocalCandidate(event.candidate, "rtcp", "audio",
+    iceRtpGatherer.getLocalParameters());
+};
+
+// Start gathering
+iceRtpGatherer.gather();
+iceRtcpGatherer.gather();
+
+// Initialize the ICE transport arrays
+var iceRtpTransports = [];
+var iceRtcpTransports = [];
+
+// Set up response function
+mySignaller.onResponse = function(responseSignaller, response) {
+  // We may get N responses
+
+  // Create the ICE RTP and RTCP transports
+  var iceRtpTransport = new RTCIceTransport(iceRtpGatherer);
+  var iceRtcpTransport = iceRtpTransport.createAssociatedTransport();
+
+  // Start the RTP and RTCP ICE transports so that outgoing ICE connectivity checks can begin
+  // The RTP and RTCP ICE parameters are the same, so only the RTP parameters are used
+  iceRtpTransport.start(iceRtpGatherer, response.icertp, RTCIceRole.controlling);
+  iceRtcpTransport.start(iceRtcpGatherer, response.icertp, RTCIceRole.controlling);
+
+  iceRtpTransports.push(iceRtpTransport);
+  iceRtcpTransports.push(iceRtcpTransport);
+
+  // Prepare to add ICE candidates signalled by the remote peer
+  responseSignaller.onRemoteCandidate = function(remote) {
+    // Locate the ICE transport that the signaled candidate relates to by matching
+   //  the userNameFragment.
+    var transports;
+    if (remote.component === "rtp") {
+      transports = iceRtpTransports;
+    } else {
+      transports = iceRtcpTransports;
+    }
+
+    for (var j = 0; j &lt; iceTransport.length; j++) {
+      var transport = transports[j];
+      if (transport.getRemoteParameters().userNameFragment === remote.parameters.userNameFragment)
+        transport.addRemoteCandidate(remote.candidate);
+      }
+    }
+  };
+};
+
+mySignaller.send({
+  // The RTP and RTCP parameters are identical, so no need to send both
+  icertp: iceRtpGatherer.getLocalParameters()
+});
+                </pre>
+    </section>
+  </section>
+    <section id="privacy-security">
+    <h2>Privacy and Security Considerations</h2>
+    <p>This section is non-normative; it specifies no new behaviour, but
+    instead summarizes information already present in other parts of the
+    specification. The overall security considerations of the
+    APIs and protocols used in WebRTC are described in
+    [[RTCWEB-SECURITY-ARCH]].</p>
+    <section>
+      <h2>Impact on same origin policy</h2>
+      <p>This API, along with the QUIC API enables data to be communicated between
+      browsers and other devices, including other browsers.</p>
+      <p>This means that data can be shared between applications
+      running in different browsers, or between an application running in the
+      same browser and something that is not a browser.  This is an extension
+      to the Web model which has had barriers against sending data
+      between entities with different origins.</p>
+      <p>This specification provides no user prompts or chrome indicators
+      for communication; it assumes that once the Web page has been allowed to
+      access data, it is free to share that data with other entities as it
+      chooses. Peer-to-peer exchanges of data can therefore
+      occur without any user explicit consent or involvement.</p>
+    </section>
+    <section>
+      <h2>Impact on local network</h2>
+      <p>Since the browser is an active platform executing in a trusted network
+      environment (inside the firewall), it is important to limit the damage
+      that the browser can do to other elements on the local network, and it is
+      important to protect data from interception, manipulation and
+      modification by untrusted participants.</p>
+      <p>Mitigations include:</p>
+      <ul>
+        <li>An UA will always request permission from the correspondent UA to
+        communicate using ICE. This ensures that the UA can only send to
+        partners who you have shared credentials with.</li>
+        <li>An UA will always request ongoing permission to continue sending
+        using ICE consent [[!RFC7675]]. This enables a receiver to withdraw
+        consent to receive.</li>
+        <li>An UA will always encrypt data, with strong per-session keying.</li>
+        <li>An UA will always use congestion control. This ensures that QUIC
+        cannot be used to flood the network.</li>
+      </ul>
+      <p>These measures are specified in the relevant IETF documents.</p>
+    </section>
+    <section>
+      <h2>Confidentiality of Communications</h2>
+      <p>The fact that communication is taking place cannot be hidden from
+      adversaries that can observe the network, so this has to be regarded as
+      public information.</p>
+      <p>Since the SRTP, DTLS and QUIC protocols utilize a cryptographic negotiation
+      in order to encrypt communications, confidentiality is provided.</p>
+    </section>
+    <section>
+      <h2>Persistent information</h2>
+      <p>Utilizing the <code>generateCertificate</code> API in [[!WEBRTC]], it is possible to
+      generate and store certificates that can subsequently be reused.  These persistent certificates
+      can therefore be used to identify a user.</p>
+    </section>
+  </section>
+  <section class="informative">
+    <h2>Event summary</h2>
+    <p>The following events fire on <code><a>RTCIceGatherer</a></code> objects:</p>
+    <table style="border-width:0; width:60%" border="1">
+      <tbody>
+        <tr>
+          <th>Event name</th>
+          <th>Interface</th>
+          <th>Fired when...</th>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <td><dfn><code>icecandidateerror</code></dfn></td>
+          <td><code><a>RTCIceGathererIceErrorEvent</a></code></td>
+          <td>The <code><a>RTCIceGatherer</a></code> object has experienced an ICE
+          gathering failure (such as an authentication failure with TURN
+          credentials).</td>
+        </tr>
+        <tr>
+          <td><code>statechange</code></td>
+          <td><code><a>Event</a></code></td>
+          <td>The <code><a>RTCIceGathererState</a></code> changed.</td>
+        </tr>
+        <tr>
+          <td><code>icecandidate</code></td>
+          <td><code><a>RTCIceGatherer</a></code></td>
+          <td>A new <code><a>RTCIceGatherCandidate</a></code> is made available to the
+          script.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>The following events fire on <code><a>RTCIceTransport</a></code> objects:</p>
+    <table style="border-width:0; width:60%" border="1">
+      <tbody>
+        <tr>
+          <th>Event name</th>
+          <th>Interface</th>
+          <th>Fired when...</th>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <td><code>statechange</code></td>
+          <td><code><a>Event</a></code></td>
+          <td>The <code><a>RTCIceTransportState</a></code> changed.</td>
+        </tr>
+        <tr>
+          <td><code>icecandidatepairchange</code></td>
+          <td><code><a>RTCIceCandidatePairChangedEvent</a></code></td>
+          <td>The selected <code><a>RTCIceCandidatePair</a></code> changed.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+ <section id="change-log*">
+    <h2>Change Log</h2>
+    <p>This section will be removed before publication.</p>
+ </section>
+ <section class="appendix">
+    <h2>Acknowledgements</h2>
+    <p>The editors wish to thank the Working Group chairs and Team Contact,
+    Harald Alvestrand, Stefan H&aring;kansson, Bernard Aboba and Dominique
+    Haza&euml;l-Massieux, for their support. Contributions to this
+    specification were provided by Robin Raymond.</p>
+    <p>The <code><a>RTCIceTransport</a></code> and <code><a>RTCIceGatherer</a></code> objects
+    were initially described in the <a href="https://www.w3.org/community/ortc/">W3C ORTC CG</a>,
+    and have been adapted for use in this specification.</p>
+</body>
+</html>
