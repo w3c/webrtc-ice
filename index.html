@@ -69,8 +69,8 @@
       <dfn data-lt="resolve|resolves">resolved</dfn>, <dfn>pending</dfn> and
       <dfn>settled</dfn> used in the context of Promises are defined in
       [[!ECMASCRIPT-6.0]].</p>
-    <p>The <dfn><code>RTCDtlsTransport</code></dfn> interface and <dfn><code>RTCIceTransportState</code></dfn> enum
-    are defined in [[!WEBRTC]].</p> 
+    <p>The <dfn><code>RTCDtlsTransport</code></dfn> interface and <dfn><code>RTCIceTransportState</code></dfn>,
+    <dfn><code>RTCIceRole</code></dfn> enums are defined in [[!WEBRTC]].</p> 
   </section>
 </section>
   <section id="rtcicegatherer*">
@@ -1892,38 +1892,6 @@ interface RTCIceTransport : RTCStatsProvider {
               <td>
                 <p>The RTCP component ID, defined (as '2') in [[!RFC5245]] Section
                 4.1.1.1.</p>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-    <section id="rtcicerole*">
-      <h3><dfn>RTCIceRole</dfn> Enum</h3>
-      <p><code>RTCIceRole</code> contains the current role of the ICE
-      transport.</p>
-      <div>
-        <pre class="idl">enum RTCIceRole {
-    "controlling",
-    "controlled"
-};</pre>
-        <table data-link-for="RTCIceRole" data-dfn-for="RTCIceRole" class="simple">
-          <tbody>
-            <tr>
-              <th colspan="2">Enumeration description</th>
-            </tr>
-            <tr>
-              <td><dfn><code id=
-              "idl-def-RTCIceRole.controlling">controlling</code></dfn></td>
-              <td>
-                <p>controlling state</p>
-              </td>
-            </tr>
-            <tr>
-              <td><dfn><code id=
-              "idl-def-RTCIceRole.controlled">controlled</code></dfn></td>
-              <td>
-                <p>controlled state</p>
               </td>
             </tr>
           </tbody>
