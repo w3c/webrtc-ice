@@ -69,7 +69,8 @@
       <dfn data-lt="resolve|resolves">resolved</dfn>, <dfn>pending</dfn> and
       <dfn>settled</dfn> used in the context of Promises are defined in
       [[!ECMASCRIPT-6.0]].</p>
-    <p>The <dfn><code>RTCDtlsTransport</code></dfn> interface and <dfn><code>RTCIceTransportState</code></dfn>,
+    <p>The <dfn><code>RTCDtlsTransport</code></dfn> interface, 
+    <dfn><code>RTCIceCandidatePair</code></dfn> dictionary and <dfn><code>RTCIceTransportState</code></dfn>,
     <dfn><code>RTCIceRole</code></dfn> enums are defined in [[!WEBRTC]].</p> 
   </section>
 </section>
@@ -1986,33 +1987,6 @@ interface RTCIceCandidatePairChangedEvent : Event {
             <dd>
               <p>The <code>pair</code> attribute is the selected
               <code><a>RTCIceCandidatePair</a></code> that caused the event.</p>
-            </dd>
-          </dl>
-        </section>
-      </div>
-    </section>
-    <section id="rtcicecandidatepair*">
-      <h3><dfn>RTCIceCandidatePair</dfn> Dictionary</h3>
-      <p>The <code>RTCIceCandidatePair</code> contains the currently selected
-      ICE candidate pair.</p>
-      <div>
-        <pre class="idl">dictionary RTCIceCandidatePair {
-             RTCIceCandidate local;
-             RTCIceCandidate remote;
-};</pre>
-        <section>
-          <h2>Dictionary <a class="idlType">RTCIceCandidatePair</a> Members</h2>
-          <dl data-link-for="RTCIceCandidatePair" data-dfn-for="RTCIceCandidatePair"
-          class="dictionary-members">
-            <dt><dfn><code>local</code></dfn> of type <span class=
-            "idlMemberType"><a>RTCIceCandidate</a></span></dt>
-            <dd>
-              <p>The local ICE candidate.</p>
-            </dd>
-            <dt><dfn><code>remote</code></dfn> of type <span class=
-            "idlMemberType"><a>RTCIceCandidate</a></span></dt>
-            <dd>
-              <p>The remote ICE candidate.</p>
             </dd>
           </dl>
         </section>
