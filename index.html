@@ -69,7 +69,8 @@
       <dfn data-lt="resolve|resolves">resolved</dfn>, <dfn>pending</dfn> and
       <dfn>settled</dfn> used in the context of Promises are defined in
       [[!ECMASCRIPT-6.0]].</p>
-      <p>The <dfn><code>RTCDtlsTransport</code></dfn> interface is defined in [[!WEBRTC]].</p> 
+    <p>The <dfn><code>RTCDtlsTransport</code></dfn> interface and <dfn><code>RTCIceTransportState</code></dfn> enum
+    are defined in [[!WEBRTC]].</p> 
   </section>
 </section>
   <section id="rtcicegatherer*">
@@ -1928,138 +1929,6 @@ interface RTCIceTransport : RTCStatsProvider {
           </tbody>
         </table>
       </div>
-    </section>
-    <section id="rtcicetransportstate*">
-      <h3><dfn>RTCIceTransportState</dfn> Enum</h3>
-      <p><code>RTCIceTransportState</code> represents the current state of the
-      ICE transport.</p>
-      <div>
-        <pre class="idl">enum RTCIceTransportState {
-    "new",
-    "checking",
-    "connected",
-    "completed",
-    "disconnected",
-    "failed",
-    "closed"
-};</pre>
-        <table data-link-for="RTCIceTransportState" data-dfn-for="RTCIceTransportState"
-        class="simple">
-          <tbody>
-            <tr>
-              <th colspan="2">Enumeration description</th>
-            </tr>
-            <tr>
-              <td><dfn><code id="idl-def-RTCIceTransportState.new">new</code></dfn></td>
-              <td>
-                <p>The <code><a>RTCIceTransport</a></code> object is waiting for remote
-                candidates to be supplied. In this state the
-                <code><a>RTCIceTransport</a></code> object can respond to incoming
-                connectivity checks.</p>
-              </td>
-            </tr>
-            <tr>
-              <td><dfn><code id=
-              "idl-def-RTCIceTransportState.checking">checking</code></dfn></td>
-              <td>
-                <p>The <code><a>RTCIceTransport</a></code> has received at least one
-                remote candidate, and a local and remote
-                <code><a>RTCIceCandidateComplete</a></code> dictionary was not added as
-                the last candidate. In this state the <code><a>RTCIceTransport</a></code>
-                is checking candidate pairs but has not yet found a successful candidate
-                pair, or consent checks [[!RFC7675]] have failed on all previously
-                successful candidate pairs.</p>
-              </td>
-            </tr>
-            <tr>
-              <td><dfn><code id=
-              "idl-def-RTCIceTransportState.connected">connected</code></dfn></td>
-              <td>
-                <p>The <code><a>RTCIceTransport</a></code> has received a response to an
-                outgoing connectivity check, or has received incoming DTLS/media after a
-                successful response to an incoming connectivity check, but is still
-                checking other candidate pairs to see if there is a better connection. In
-                this state outgoing media is permitted. If consent checks [[!RFC7675]]
-                fail on the connection in use, and there are no other successful
-                candidate pairs available, then the state transitions to
-                <code>checking</code> (if there are candidate pairs remaining to be
-                checked) or <code>disconnected</code> (if there are no candidate pairs to
-                check, but the peer is still gathering and/or waiting for additional
-                remote candidates).</p>
-              </td>
-            </tr>
-            <tr>
-              <td><dfn><code id=
-              "idl-def-RTCIceTransportState.completed">completed</code></dfn></td>
-              <td>
-                <p>A local and remote <code><a>RTCIceCandidateComplete</a></code>
-                dictionary was added as the last candidate to the
-                <code><a>RTCIceTransport</a></code> and all appropriate candidate pairs
-                have been tested and at least one functioning candidate pair has been
-                found. If consent checks [[!RFC7675]] subsequently fail on all successful
-                candidate pairs, the state transitions to <code>failed</code>.</p>
-              </td>
-            </tr>
-            <tr>
-              <td><dfn><code id=
-              "idl-def-RTCIceTransportState.disconnected">disconnected</code></dfn></td>
-              <td>
-                <p>Connectivity is currently lost for this <code><a>RTCIceTransport</a></code>.
-                The <code><a>RTCIceTransport</a></code> has received at least one
-                local and remote candidate, and a local and remote
-                <code><a>RTCIceCandidateComplete</a></code> dictionary was not added as
-                the last candidate, but all appropriate candidate pairs thus far have
-                been tested and failed, or consent checks [[!RFC7675]] once successful,
-                have repeatedly failed to receive a response.  At the implementation's
-                discretion, this state may be entered prior to consent failure, and
-                therefore could resolve itself without action.  Other candidate pairs
-                may become available for testing as new candidates are trickled,
-                and a temporary consent failure could resolve itself, therefore
-                the <code>failed</code>state has not been reached.</p>
-              </td>
-            </tr>
-            <tr>
-              <td><dfn><code id=
-              "idl-def-RTCIceTransportState.failed">failed</code></dfn></td>
-              <td>
-                <p>A local and remote <code><a>RTCIceCandidateComplete</a></code>
-                dictionary was added as the last candidate to the
-                <code><a>RTCIceTransport</a></code> and all appropriate candidate pairs
-                have either failed connectivity checks or have lost consent.</p>
-              </td>
-            </tr>
-            <tr>
-              <td><dfn><code id=
-              "idl-def-RTCIceTransportState.closed">closed</code></dfn></td>
-              <td>
-                <p>The <code><a>RTCIceTransport</a></code> has shut down and is no longer
-                responding to STUN requests.</p>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <p>Some example transitions might be:</p>
-      <ul>
-        <li>new RTCIceTransport(): <code>new</code></li>
-        <li>(<code>new</code>, remote candidates received): <code>checking</code></li>
-        <li>(<code>checking</code>, found usable connection): <code>connected</code></li>
-        <li>(<code>checking</code>, checks fail but gathering still in progress):
-        <code>disconnected</code></li>
-        <li>(<code>checking</code>, gave up): <code>failed</code></li>
-        <li>(<code>disconnected</code>, new local candidates): <code>checking</code></li>
-        <li>(<code>connected</code>, finished all checks): <code>completed</code></li>
-        <li>(<code>completed</code>, lost connectivity): <code>disconnected</code></li>
-        <li>(any state, ICE restart occurs): <code>new</code></li>
-        <li>close(): <code>closed</code></li>
-      </ul>
-      <figure>
-        <img alt="The non-normative RTCIceTransportState transition diagram" src=
-        "images/ortc-icetransportstate.svg" style="width:100%">
-        <figcaption>
-          Non-normative ICE transport state transition diagram
-        </figcaption>
-      </figure>
     </section>
     <section id="rtcicecandidatepairchangedevent-interface-definition*">
       <h3><dfn>RTCIceCandidatePairChangedEvent</dfn></h3>
