@@ -1471,24 +1471,20 @@ export function myDtlsTransportStateChange(name, state){
       can be garbage-collected when it is no longer referenced.</p>
     </section>
     <section id="rtcicetransport-interface-definition*">
-      <h3>Interface Definition</h3>
+      <h3>Interface Definition</
       <div>
-        <pre class="idl">[ Constructor (optional RTCIceGatherer gatherer), Exposed=Window]
-interface RTCIceTransport : RTCStatsProvider {
-    readonly        attribute RTCIceGatherer?      iceGatherer;
+        <pre class="idl">[ Constructor (), Exposed=Window]
+partial interface RTCIceTransport : RTCStatsProvider {
     readonly        attribute RTCIceRole           role;
     readonly        attribute RTCIceComponent      component;
     readonly        attribute RTCIceTransportState state;
     sequence&lt;RTCIceCandidate&gt; getRemoteCandidates ();
-    RTCIceCandidatePair?      getSelectedCandidatePair ();
+    void                      gather (optional RTCIceGatherOptions options);
     void                      start (RTCIceGatherer gatherer, RTCIceParameters remoteParameters, optional RTCIceRole role = "controlled");
     void                      stop ();
     RTCIceParameters?         getRemoteParameters ();
-    RTCIceTransport           createAssociatedTransport ();
     void                      addRemoteCandidate (RTCIceGatherCandidate remoteCandidate);
     void                      setRemoteCandidates (sequence&lt;RTCIceCandidate&gt; remoteCandidates);
-                    attribute EventHandler         onstatechange;
-                    attribute EventHandler         oncandidatepairchange;
 };</pre>
         <section>
           <h2>Constructors</h2>
