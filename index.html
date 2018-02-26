@@ -4,9 +4,8 @@
   <meta charset="utf-8">
   <link href="webrtc.css" rel="stylesheet">
   <title>IceTransport Extensions for WebRTC</title>
-  <script src="respec-w3c-common.js" async class="remove"></script>
+  <script src="https://www.w3.org/Tools/respec/respec-w3c-common" async class="remove"></script>
   <script src="respec-config.js" class="remove"></script>
-  </script>
 </head>
 <body>
   <section id="abstract">
@@ -77,7 +76,6 @@
     and the <dfn><code>RTCIceTransportPolicy</code></dfn>,  <dfn><code>RTCIceTransportState</code></dfn> and
     <dfn><code>RTCIceRole</code></dfn> enums are defined in [[!WEBRTC]].</p> 
   </section>
-</section>
   <section id="rtcicetransport*">
     <h2><code>RTCIceTransport</code> Extensions</h2>
     <p>The <code><a>RTCIceTransport</a></code> extensions allow construction of
@@ -243,8 +241,11 @@ partial interface RTCIceTransport {
                <p>Append <var>server</var> to <var>validatedServers</var>.</p>
              </li>
            </ol>
-           <p>Let <var>validatedServers</var> be the <dfn id="ice-servers-list">
-           ICE servers list</dfn>.</p>
+           <li>
+             <p>Let <var>validatedServers</var> be the <dfn id="ice-servers-list">
+             ICE servers list</dfn>.</p>
+           </li>
+         </ol>
               <table class="parameters">
                 <tbody>
                   <tr>
@@ -281,7 +282,7 @@ partial interface RTCIceTransport {
               configured role. Since <code>start()</code> enables candidate pairs
               to be formed, it also enables initiating connectivity checks.</p>
               <p>When <code>start()</code> is called, the following
-              steps MUST be run:<p>
+              steps MUST be run:
               <ol>
                 <li>
                   If <code>state</code> is <code>closed</code>, <a>throw</a> an <code>InvalidStateError</code>.
@@ -378,7 +379,7 @@ partial interface RTCIceTransport {
               <p>Irreversibly stops the
               <code><a>RTCIceTransport</a></code>. When
               <code>stop</code> is called, the following
-              steps MUST be run:<p>
+              steps MUST be run:
               <ol>
                 <li>
                   Let <var>iceTransport</var> be the
@@ -543,5 +544,6 @@ partial interface RTCIceTransport {
     <p>The <code><a>RTCIceTransport</a></code> object
     was initially described in the <a href="https://www.w3.org/community/ortc/">W3C ORTC CG</a>,
     and has been adapted for use in this specification.</p>
+ </section>
 </body>
 </html>
