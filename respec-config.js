@@ -1,6 +1,5 @@
 var respecConfig = {
   specStatus: "ED",
-  prevED: "https://w3c.github.io/webrtc-ice/",
   // if there a publicly available Editor's Draft, this is the link
   edDraftURI: "https://w3c.github.io/webrtc-ice/",
   shortName: "webrtc-ice",
