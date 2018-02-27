@@ -280,9 +280,9 @@ partial interface RTCIceTransport {
               <code>start()</code> is called an <code><a>RTCIceTransport</a></code>
               object can respond to incoming connectivity checks based on its
               configured role. Since <code>start()</code> enables candidate pairs
-              to be formed, it also enables initiating connectivity checks.</p>
-              <p>When <code>start()</code> is called, the following
-              steps MUST be run:
+              to be formed, it also enables initiating connectivity checks.
+              When <code>start()</code> is called, the following
+              steps MUST be run:</p>
               <ol>
                 <li>
                   If <code>state</code> is <code>closed</code>, <a>throw</a> an <code>InvalidStateError</code>.
@@ -379,7 +379,7 @@ partial interface RTCIceTransport {
               <p>Irreversibly stops the
               <code><a>RTCIceTransport</a></code>. When
               <code>stop</code> is called, the following
-              steps MUST be run:
+              steps MUST be run:</p>
               <ol>
                 <li>
                   Let <var>iceTransport</var> be the
