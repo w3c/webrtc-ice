@@ -119,7 +119,7 @@ partial interface RTCIceTransport {
     void                      stop ();
     void                      addRemoteCandidate (RTCIceCandidate remoteCandidate);
                     attribute EventHandler        onerror;
-                    attribute EventHandler        onlocalcandidate;
+                    attribute EventHandler        onicecandidate;
 };</pre>
         <section>
           <h2>Constructors</h2>
@@ -145,7 +145,7 @@ partial interface RTCIceTransport {
               "MUST">MUST</em> be fired if an error occurs in the gathering of ICE
               candidates (such as if TURN credentials are invalid).</p>
             </dd>
-            <dt><dfn><code>onlocalcandidate</code></dfn> of type <span class=
+            <dt><dfn><code>onicecandidate</code></dfn> of type <span class=
             "idlAttrType"><a>EventHandler</a></span></dt>
             <dd>
               <p>This event handler utilizes the event handler event type
