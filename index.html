@@ -131,7 +131,8 @@ partial interface RTCIceTransport {
     sequence&lt;RTCIceCandidatePair&gt; getCandidatePairs();
     RTCIceTransport           fork ();
                     attribute EventHandler        onerror;
-                    attribute EventHandler        onicecandidate;
+                    attribute EventHandler        onlocalcandidate;
+                    attribute EventHandler        onchecksent;
 };</pre>
         <section>
           <h2>Constructors</h2>
@@ -157,11 +158,17 @@ partial interface RTCIceTransport {
               "MUST">MUST</em> be fired if an error occurs in the gathering of ICE
               candidates (such as if TURN credentials are invalid).</p>
             </dd>
-            <dt><dfn><code>onicecandidate</code></dfn> of type <span class=
+            <dt><dfn><code>onlocalcandidate</code></dfn> of type <span class=
             "idlAttrType"><a>EventHandler</a></span></dt>
             <dd>
               <p>This event handler utilizes the event handler event type
               <code><a>icecandidate</a></code>.
+            </dd>
+            <dt><dfn><code>onchecksent</code></dfn> of type <span class=
+            "idlAttrType"><a>EventHandler</a></span></dt>
+            <dd>
+              <p>This event handler utilizes the event handler event type
+              <code><a>icecheck</a></code>.
             </dd>
           </dl>
         </section>
@@ -540,7 +547,7 @@ partial interface RTCIceTransport {
         </section>
       </div>
     </section>
-    <section id="rtcicetransport-interface-definition*">
+    <section id="rtcicecandidate-interface-definition*">
       <h3>Interface Definition</h3>
       <div>
         <pre class="idl">[Exposed=Window]
@@ -569,7 +576,7 @@ partial interface RTCIceCandidate {
         </section>
       </div>
     </section>
-    <section id="rtcicetransport-interface-definition*">
+    <section id="rtcicecandidatepair-interface-definition*">
       <h3>Interface Definition</h3>
       <div>
         <pre class="idl">[Exposed=Window]
@@ -703,6 +710,29 @@ partial interface RTCIceCandidatePair {
         </section>
       </div>
     </section>
+    <section id="rtcicecheck-interface-definition*">
+      <h3>Interface Definition</h3>
+      <div>
+        <pre class="idl">[Exposed=Window]
+interface RTCIceCheck {
+    readonly        attribute Promise<boolean> response;
+};</pre>
+        <section>
+          <h2>Attributes</h2>
+          <dl data-link-for="RTCIceCheck" data-dfn-for="RTCIceCheck" class=
+          "attributes">
+            <dt><dfn><code>response</code></dfn> of type <span class=
+            "idlAttrType"><a>boolean</a></span></dt>
+            <dd>
+	      A promise that resolves when the RTCIceTransport
+	      receives a response to the check.  Resolves with a true
+	      value if the response is successful and false if the
+	      response was an error.
+            </dd>
+          </dl>
+        </section>
+      </div>
+    </section>
     </section>
     <section id="privacy-security">
     <h2>Privacy and Security Considerations</h2>
@@ -779,6 +809,12 @@ partial interface RTCIceCandidatePair {
           <td><code>icecandidate</code></td>
           <td><code><a>RTCPeerConnectionIceEvent</a></code></td>
           <td>A new <code><a>RTCIceCandidate</a></code> is made available to the
+          script.</td>
+        </tr>
+        <tr>
+          <td><code>icehceck</code></td>
+          <td><code><a>RTCIceCheckEvent</a></code></td>
+          <td>A new <code><a>RTCIceChecke</a></code> is made available to the
           script.</td>
         </tr>
       </tbody>
