@@ -564,6 +564,8 @@ partial interface RTCIceCandidatePair {
     void setMinCheckInterval(double seconds);
     void setFrozen(bool frozen);
     void select();
+    Promise<bool> nominate();
+    Promise waitForReceiveTimeout(double seconds);	    
 };</pre>
         <section>
           <h2>Methods</h2>
@@ -628,16 +630,61 @@ partial interface RTCIceCandidatePair {
                 <em>Return type:</em> <code>void</code>
               </div>
 	    </dd>
-            <dt><dfn><code>select()</code></dfn></dt>
+            <dt><dfn><code>select</code></dfn></dt>
             <dd>
-              <p>Selects the candidate pair.  Once this is called once,
-              RTCIceTransport will no longer automatically select
-              candidate pairs and only calling select() again will
-              change the selected candidate pair again.</p>
+              <p>Selects the candidate pair.  Once this is called
+              once, the RTCIceTransport will no longer automatically
+              select candidate pairs and the only way to change the
+              selected candidate pair will be calling select() again
+              will change the selected candidate pair again.</p>
               <div>
                 <em>Return type:</em> <code>void</code>
               </div>
 	    </dd>
+            <dt><dfn><code>nominate</code></dfn></dt>
+            <dd>
+              <p>Nominates the candidate pair by sending a nomination
+              to the remote side.  Resolves the returned promise once
+              the nomination has been sent or once it has been
+              determined that it is impossible to nominate (for
+              example, if aggressive nomination and renomination are
+              both unavailable due to the ICE options and a nomination
+              has already been sent.</p>
+              <div>
+                <em>Return type:</em> <code>Promise&lt;boolean&gt;</code>
+              </div>
+	    </dd>
+            <dt><dfn><code>waitForReceiveTimeout</code></dfn></dt>
+	    <dd>
+              <p>Wait until no network pacekts have been received for
+              more than the given timeout.  This allows the detection
+              of network outage.  If called a second time on the same
+              RTCIceTransport, the previous call's promise is rejected
+              immediately.  Thus, only one pending wait per
+              IceTransport is allowed at a time.</p>
+              <table class="parameters">
+                <tbody>
+                  <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Nullable</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                  <tr>
+                    <td class="prmName">seconds</td>
+                    <td class="prmType"><code><a>double</a></code></td>
+                    <td class="prmNullFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmOptTrue"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmDesc"></td>
+                  </tr>
+                </tbody>
+              </table>
+              <div>
+                <em>Return type:</em> <code>void</code>
+              </div>
 	  </dl>
         </section>
       </div>
