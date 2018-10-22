@@ -128,7 +128,8 @@ partial interface RTCIceTransport {
     void                      addRemoteCandidate (RTCIceCandidate remoteCandidate);
     void                      retainLocalCandidate (RTCIceCandidate localCandidate);
     void                      removeLocalCandidate (RTCIceCandidate localCandidate);
-    readonly        attribute sequence&lt;RTCIceCandidatePair&gt; getCandidatePairs();
+    sequence&lt;RTCIceCandidatePair&gt; getCandidatePairs();
+    RTCIceTransport           fork ();
                     attribute EventHandler        onerror;
                     attribute EventHandler        onicecandidate;
 };</pre>
@@ -520,6 +521,19 @@ partial interface RTCIceTransport {
               <p>Return all the candidate pairs.</p>
               <div>
                 <em>Return type:</em> <code>sequence&lt;RTCIceCandidatePair&gt;</code>
+              </div>
+            </dd>
+            <dt><dfn><code>fork()</code></dfn></dt>
+            <dd>
+              <p>Create a new RTCIceTransport that is the same as if
+              constructor with a constructor except that the local ICE
+              candidates already in the existing RTCIceTransport are
+              shared with the new RTCIceTransport.  Future calls to
+              gather() for either of the transports does not affect
+              the other (only the local candidates from before the
+              fork are shared).</p>
+              <div>
+                <em>Return type:</em> <code>RTCIceTransport</code>
               </div>
             </dd>
           </dl>
