@@ -50,6 +50,17 @@ var respecConfig = {
       "status": "10 October 2017. Internet Draft (work in progress)",
       "publisher": "IETF"
     },
+    "ORTC": {
+      "title": "Object RTC (ORTC) API for WebRTC",
+      "href": "http://draft.ortc.org/",
+      "authors": [
+        "Robin Raymond",
+        "Bernard Aboba",
+        "Justin Uberti"
+      ],
+      "status": "03 October 2018(work in progress)",
+      "publisher": "W3C"
+    },
    "RFC6544": {
       "title": "TCP Candidates with Interactive Connectivity Establishment (ICE)",
       "href": "https://tools.ietf.org/html/rfc6544",
