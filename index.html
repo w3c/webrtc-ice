@@ -20,12 +20,12 @@
   </section>
   <section class="informative" id="intro">
     <h2>Introduction</h2>
-    <p>This specification extends the WebRTC specification [[!WEBRTC]] to
-    allow construction of an <code><a>RTCIceTransport</a></code> interface 
-    in situations where such an interface would not created in the
-    WebRTC 1.0 API, such as when the WebRTC-QUIC extension [[WEBRTC-QUIC]]
-    is used in a scenario involving QUIC data exchange, but not use
-    of audio, video or the SCTP data channel.</p>  
+    <p>This specification extends the WebRTC specification [[WEBRTC]] to
+    allow construction of an <code><a>RTCIceTransport</a></code> object 
+    in situations where this would not otherwise be available, such as in a
+    data exchange-only application that does not construct an
+    <code>RTCPeerConnection</code> object (e.g. <code>RTCDataChannel</code>
+    in workers, WebRTC-QUIC, etc.).</p>  
   </section>
   <section id="conformance">
     <p>This specification defines conformance criteria that apply to a single
