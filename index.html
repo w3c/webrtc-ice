@@ -411,7 +411,7 @@ partial interface RTCIceTransport {
               <p>Add a remote candidate associated with the remote
               <code><a>RTCIceTransport</a></code>. If <code>state</code> is
               <code>closed</code>, <a>throw</a> an <code>InvalidStateError</code>.
-              When the remote <code><a>RTCIceGatherer</a></code> emits its final
+              When the remote <code><a>RTCIceTransport</a></code> emits its final
               candidate, <code><a>addRemoteCandidate</a>()</code> should be called with
               an <code><a>RTCIceCandidateComplete</a></code> dictionary as an argument,
               so that the local <code><a>RTCIceTransport</a></code> can know there are no
