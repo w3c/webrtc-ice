@@ -89,6 +89,7 @@
         <pre class="idl">dictionary RTCIceGatherOptions {
              RTCIceTransportPolicy     gatherPolicy;
              sequence&lt;RTCIceServer&gt; iceServers;
+             sequence&lt;DOMString&gt;? networkIds;
 };</pre>
         <section>
           <h2>Dictionary <a class="idlType">RTCIceGatherOptions</a> Members</h2>
@@ -106,6 +107,13 @@
               provide default ICE servers, and applications can desire to restrict
               communications to the local LAN, <var>iceServers</var> need not be set.</p>
             </dd>
+            <dt><dfn><code>networkIds</code></dfn> of type <span class=
+            "idlMemberType">sequence&lt;<a>DOMString</a>&gt;</span></dt>
+            <dd>
+              <p>If set and non-null, ICE gathering will be limited to the network
+              interfaces specfied by the network IDs (obtained by
+              calling getLocalCandidates().</p>
+            </dd>
           </dl>
         </section>
       </div>
@@ -119,8 +127,13 @@ partial interface RTCIceTransport {
     void                      start (RTCIceParameters remoteParameters, optional RTCIceRole role = "controlled");
     void                      stop ();
     void                      addRemoteCandidate (RTCIceCandidate remoteCandidate);
+    void                      retainLocalCandidate (RTCIceCandidate localCandidate);
+    void                      removeLocalCandidate (RTCIceCandidate localCandidate);
+    sequence&lt;RTCIceCandidatePair&gt; getCandidatePairs();
+    RTCIceTransport           fork ();
                     attribute EventHandler        onerror;
-                    attribute EventHandler        onicecandidate;
+                    attribute EventHandler        onlocalcandidate;
+                    attribute EventHandler        onchecksent;
 };</pre>
         <section>
           <h2>Constructors</h2>
@@ -146,11 +159,17 @@ partial interface RTCIceTransport {
               "MUST">MUST</em> be fired if an error occurs in the gathering of ICE
               candidates (such as if TURN credentials are invalid).</p>
             </dd>
-            <dt><dfn><code>onicecandidate</code></dfn> of type <span class=
+            <dt><dfn><code>onlocalcandidate</code></dfn> of type <span class=
             "idlAttrType"><a>EventHandler</a></span></dt>
             <dd>
               <p>This event handler utilizes the event handler event type
               <code><a>icecandidate</a></code>.
+            </dd>
+            <dt><dfn><code>onchecksent</code></dfn> of type <span class=
+            "idlAttrType"><a>EventHandler</a></span></dt>
+            <dd>
+              <p>This event handler utilizes the event handler event type
+              <code><a>icecheck</a></code>.
             </dd>
           </dl>
         </section>
@@ -442,6 +461,275 @@ partial interface RTCIceTransport {
                 <em>Return type:</em> <code>void</code>
               </div>
             </dd>
+            <dt><dfn><code>removeLocalCandidate</code></dfn></dt>
+            <dd>
+              <p>Removes the given local candidate.  This will trigger
+              the removal of all candidate pairs with the given local
+              candidate, the prevention of pairing with the given
+              local candidate, and prevention of any network activity
+              using the given local candidate.</p>
+              <table class="parameters">
+                <tbody>
+                  <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Nullable</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                  <tr>
+                    <td class="prmName">localCandidate</td>
+                    <td class="prmType"><code><a>RTCIceCandidate</a></code></td>
+                    <td class="prmNullFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmOptFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmDesc"></td>
+                  </tr>
+                </tbody>
+              </table>
+              <div>
+                <em>Return type:</em> <code>void</code>
+              </div>
+            </dd>
+            <dt><dfn><code>retainLocalCandidate</code></dfn></dt>
+            <dd>
+              <p>Cause the RTCIceTransport to not automatically remove
+              the local candidate due to ICE pruning (such as when a
+              candidate pair with a different local candidate is
+              selected).  But the local candidate may be removed if it
+              completely fails (such as a network interface going
+              away).</p>
+              <table class="parameters">
+                <tbody>
+                  <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Nullable</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                  <tr>
+                    <td class="prmName">localCandidate</td>
+                    <td class="prmType"><code><a>RTCIceCandidate</a></code></td>
+                    <td class="prmNullFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmOptFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmDesc"></td>
+                  </tr>
+                </tbody>
+              </table>
+              <div>
+                <em>Return type:</em> <code>void</code>
+              </div>
+            </dd>
+            <dt><dfn><code>getCandidatePairs()</code></dfn></dt>
+            <dd>
+              <p>Return all the candidate pairs.</p>
+              <div>
+                <em>Return type:</em> <code>sequence&lt;RTCIceCandidatePair&gt;</code>
+              </div>
+            </dd>
+            <dt><dfn><code>fork()</code></dfn></dt>
+            <dd>
+              <p>Create a new RTCIceTransport that is the same as if
+              constructor with a constructor except that the local ICE
+              candidates already in the existing RTCIceTransport are
+              shared with the new RTCIceTransport.  Future calls to
+              gather() for either of the transports does not affect
+              the other (only the local candidates from before the
+              fork are shared).</p>
+              <div>
+                <em>Return type:</em> <code>RTCIceTransport</code>
+              </div>
+            </dd>
+          </dl>
+        </section>
+      </div>
+    </section>
+    <section id="rtcicecandidate-interface-definition*">
+      <h3>Interface Definition</h3>
+      <div>
+        <pre class="idl">[Exposed=Window]
+partial interface RTCIceCandidate {
+    readonly        attribute DOMString? networkId;
+    // TODO: Add reference to https://wicg.github.io/netinfo/#dom-networkinformation
+    readonly        attribute NetworkInformation? networkInfo;
+};</pre>
+        <section>
+          <h2>Attributes</h2>
+          <dl data-link-for="RTCIceCandidate" data-dfn-for="RTCIceCandidate" class=
+          "attributes">
+            <dt><dfn><code>networkId</code></dfn> of type <span class=
+            "idlAttrType"><a>DOMString</a></span></dt>
+            <dd>
+	      An ID of the network interface for use in gathering
+	      options.  It needs to be unique enough to fulfill that
+	      purpose, but otherwise the value is not significant.
+            </dd>
+            <dt><dfn><code>networkInfo</code></dfn> of type <span class=
+            "idlAttrType"><a>NetworkInformation</a></span></dt>
+            <dd>
+	      Information about the network interface.
+            </dd>
+          </dl>
+        </section>
+      </div>
+    </section>
+    <section id="rtcicecandidatepair-interface-definition*">
+      <h3>Interface Definition</h3>
+      <div>
+        <pre class="idl">[Exposed=Window]
+// TODO: Change RTCIceCandidatePair to an interface in WebRTC 1.0, or rename this.
+partial interface RTCIceCandidatePair {
+    void setMinCheckInterval(double seconds);
+    void setFrozen(bool frozen);
+    void select();
+    Promise<bool> nominate();
+    Promise waitForReceiveTimeout(double seconds);	    
+};</pre>
+        <section>
+          <h2>Methods</h2>
+          <dl data-link-for="RTCIceCandidatePair" data-dfn-for="RTCIceCandidatePair" class=
+          "methods">
+            <dt><dfn><code>setMinCheckInterval</code></dfn></dt>
+            <dd>
+              <p>Causes the RTCIceTransport to send ICE checks using
+              this candidate pair no more frequently than indicated by
+              the given interval (given in seconds).  The
+              RTCIceTransport may always send less frequently than
+              specified.  </p>
+              <table class="parameters">
+                <tbody>
+                  <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Nullable</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                  <tr>
+                    <td class="prmName">seconds</td>
+                    <td class="prmType"><code><a>double</a></code></td>
+                    <td class="prmNullFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmOptTrue"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmDesc"></td>
+                  </tr>
+                </tbody>
+              </table>
+              <div>
+                <em>Return type:</em> <code>void</code>
+              </div>
+	    </dd>
+            <dt><dfn><code>setFrozen</code></dfn></dt>
+            <dd>
+              <p>Freezes or unfreezes the candidate pair.  When frozen,
+		no ICE checks will be sent over it.</p>
+              <table class="parameters">
+                <tbody>
+                  <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Nullable</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                  <tr>
+                    <td class="prmName">frozen</td>
+                    <td class="prmType"><code><a>boolean</a></code></td>
+                    <td class="prmNullFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmOptTrue"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmDesc"></td>
+                  </tr>
+                </tbody>
+              </table>
+              <div>
+                <em>Return type:</em> <code>void</code>
+              </div>
+	    </dd>
+            <dt><dfn><code>select</code></dfn></dt>
+            <dd>
+              <p>Selects the candidate pair.  Once this is called
+              once, the RTCIceTransport will no longer automatically
+              select candidate pairs and the only way to change the
+              selected candidate pair will be calling select() again
+              will change the selected candidate pair again.</p>
+              <div>
+                <em>Return type:</em> <code>void</code>
+              </div>
+	    </dd>
+            <dt><dfn><code>nominate</code></dfn></dt>
+            <dd>
+              <p>Nominates the candidate pair by sending a nomination
+              to the remote side.  Resolves the returned promise once
+              the nomination has been sent or once it has been
+              determined that it is impossible to nominate (for
+              example, if aggressive nomination and renomination are
+              both unavailable due to the ICE options and a nomination
+              has already been sent.</p>
+              <div>
+                <em>Return type:</em> <code>Promise&lt;boolean&gt;</code>
+              </div>
+	    </dd>
+            <dt><dfn><code>waitForReceiveTimeout</code></dfn></dt>
+	    <dd>
+              <p>Wait until no network pacekts have been received for
+              more than the given timeout.  This allows the detection
+              of network outage.  If called a second time on the same
+              RTCIceTransport, the previous call's promise is rejected
+              immediately.  Thus, only one pending wait per
+              IceTransport is allowed at a time.</p>
+              <table class="parameters">
+                <tbody>
+                  <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Nullable</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                  <tr>
+                    <td class="prmName">seconds</td>
+                    <td class="prmType"><code><a>double</a></code></td>
+                    <td class="prmNullFalse"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmOptTrue"><span role="img" aria-label=
+                    "False">&#10008;</span></td>
+                    <td class="prmDesc"></td>
+                  </tr>
+                </tbody>
+              </table>
+              <div>
+                <em>Return type:</em> <code>void</code>
+              </div>
+	  </dl>
+        </section>
+      </div>
+    </section>
+    <section id="rtcicecheck-interface-definition*">
+      <h3>Interface Definition</h3>
+      <div>
+        <pre class="idl">[Exposed=Window]
+interface RTCIceCheck {
+    readonly        attribute Promise<boolean> response;
+};</pre>
+        <section>
+          <h2>Attributes</h2>
+          <dl data-link-for="RTCIceCheck" data-dfn-for="RTCIceCheck" class=
+          "attributes">
+            <dt><dfn><code>response</code></dfn> of type <span class=
+            "idlAttrType"><a>boolean</a></span></dt>
+            <dd>
+	      A promise that resolves when the RTCIceTransport
+	      receives a response to the check.  Resolves with a true
+	      value if the response is successful and false if the
+	      response was an error.
+            </dd>
           </dl>
         </section>
       </div>
@@ -522,6 +810,12 @@ partial interface RTCIceTransport {
           <td><code>icecandidate</code></td>
           <td><code><a>RTCPeerConnectionIceEvent</a></code></td>
           <td>A new <code><a>RTCIceCandidate</a></code> is made available to the
+          script.</td>
+        </tr>
+        <tr>
+          <td><code>icehceck</code></td>
+          <td><code><a>RTCIceCheckEvent</a></code></td>
+          <td>A new <code><a>RTCIceChecke</a></code> is made available to the
           script.</td>
         </tr>
       </tbody>
