@@ -130,7 +130,7 @@ var respecConfig = {
         "C. Holmberg",
         "J. Rosenberg"
       ],
-      "status": "July 2018. RFC,
+      "status": "July 2018. RFC",
       "publisher": "IETF"
     },
     "RTCWEB-SECURITY": {
