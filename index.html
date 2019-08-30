@@ -120,7 +120,7 @@ partial interface RTCIceTransport {
     void                      gather (RTCIceGatherOptions options);
     void                      start (RTCIceParameters remoteParameters, optional RTCIceRole role = "controlled");
     void                      stop ();
-    void                      addRemoteCandidate (RTCIceCandidate remoteCandidate);
+    void                      addRemoteCandidate (RTCIceCandidateInit remoteCandidate);
                     attribute EventHandler        onerror;
                     attribute EventHandler        onicecandidate;
 };</pre>
@@ -414,11 +414,12 @@ partial interface RTCIceTransport {
               <p>Add a remote candidate associated with the remote
               <code><a>RTCIceTransport</a></code>. If <code>state</code> is
               <code>closed</code>, <a>throw</a> an <code>InvalidStateError</code>.
-              When the remote <code><a>RTCIceTransport</a></code> emits its final
-              candidate, <code><a>addRemoteCandidate</a>()</code> should be called with
-              an <code><a>RTCIceCandidateComplete</a></code> dictionary as an argument,
-              so that the local <code><a>RTCIceTransport</a></code> can know there are no
-              more remote candidates expected, and can enter the <code>completed</code>
+              When the remote <code><a>RTCIceTransport</a></code> emits its
+              end-of-candidates indication (as described in [[!WEBRTC]] Section 4.8.2),
+              <code><a>addRemoteCandidate</a>()</code> should be called with
+              the end-of-candidates indication as an argument, so that the local
+              <code><a>RTCIceTransport</a></code> can know there are no more
+              remote candidates expected, and can enter the <code>completed</code>
               state.</p>
               <table class="parameters">
                 <tbody>
@@ -431,7 +432,7 @@ partial interface RTCIceTransport {
                   </tr>
                   <tr>
                     <td class="prmName">remoteCandidate</td>
-                    <td class="prmType"><code><a>RTCIceCandidate</a></code></td>
+                    <td class="prmType"><code><a>RTCIceCandidateInit</a></code></td>
                     <td class="prmNullFalse"><span role="img" aria-label=
                     "False">&#10008;</span></td>
                     <td class="prmOptFalse"><span role="img" aria-label=
