@@ -39,17 +39,6 @@ var respecConfig = {
       "href": "https://www.iana.org/assignments/stun-parameters/stun-parameters.xhtml#stun-parameters-6",
       "publisher": "IANA"
     },
-    "JSEP": {
-      "title": "Javascript Session Establishment Protocol",
-      "href": "https://tools.ietf.org/html/draft-ietf-rtcweb-jsep",
-      "authors": [
-        "J. Uberti",
-        "C. Jennings",
-        "E. Rescorla"
-      ],
-      "status": "27 February 2019. Internet Draft (work in progress)",
-      "publisher": "IETF"
-    },
     "ORTC": {
       "title": "Object RTC (ORTC) API for WebRTC",
       "href": "http://draft.ortc.org/",
@@ -133,15 +122,6 @@ var respecConfig = {
       "status": "July 2018. RFC",
       "publisher": "IETF"
     },
-    "RTCWEB-SECURITY": {
-      "title": "Security Considerations for WebRTC",
-      "href": "https://tools.ietf.org/html/draft-ietf-rtcweb-security",
-      "authors": [
-        "E. Rescorla"
-      ],
-      "status": "05 July 2019. Internet Draft (work in progress)",
-      "publisher": "IETF"
-    },
     "RTCWEB-SECURITY-ARCH": {
       "title": "WebRTC Security Architecture",
       "href": "https://tools.ietf.org/html/draft-ietf-rtcweb-security-arch",
@@ -170,16 +150,6 @@ var respecConfig = {
       ],
       "status": "15 April 2018. Internet Draft (work in progress)",
       "publisher": "IETF"
-    },
-    "WEBRTC-QUIC": {
-      "title": "QUIC API for WebRTC",
-      "href": "https://w3c.github.io/webrtc-quic/",
-      "authors": [
-        "Peter Thatcher",
-        "Bernard Aboba"
-      ],
-      "status": "07 August 2019 (work in progress)",
-      "publisher": "W3C"
     },
     "WEBRTC-STATS": {
       "title": "Identifiers for WebRTC's Statistics API",
