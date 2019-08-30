@@ -47,7 +47,7 @@ var respecConfig = {
         "C. Jennings",
         "E. Rescorla"
       ],
-      "status": "10 October 2017. Internet Draft (work in progress)",
+      "status": "27 February 2019. Internet Draft (work in progress)",
       "publisher": "IETF"
     },
     "ORTC": {
@@ -58,7 +58,7 @@ var respecConfig = {
         "Bernard Aboba",
         "Justin Uberti"
       ],
-      "status": "03 October 2018(work in progress)",
+      "status": "03 October 2018 (work in progress)",
       "publisher": "W3C"
     },
    "RFC6544": {
@@ -122,15 +122,15 @@ var respecConfig = {
       "status": "October 2015. RFC",
       "publisher": "IETF"
     },
-   "RFC5245bis": {
+   "RFC8445": {
       "title": "Interactive Connectivity Establishment (ICE): A Protocol for Network Address Translator (NAT) Traversal",
-      "href": "https://tools.ietf.org/html/draft-ietf-ice-rfc5245bis",
+      "href": "https://tools.ietf.org/html/rfc8445",
       "authors": [
         "A. Keranen",
         "C. Holmberg",
         "J. Rosenberg"
       ],
-      "status": "24 October 2017. Internet Draft (work in progress)",
+      "status": "July 2018. RFC,
       "publisher": "IETF"
     },
     "RTCWEB-SECURITY": {
@@ -139,7 +139,7 @@ var respecConfig = {
       "authors": [
         "E. Rescorla"
       ],
-      "status": "29 October 2017. Internet Draft (work in progress)",
+      "status": "05 July 2019. Internet Draft (work in progress)",
       "publisher": "IETF"
     },
     "RTCWEB-SECURITY-ARCH": {
@@ -148,7 +148,7 @@ var respecConfig = {
       "authors": [
         "E. Rescorla"
       ],
-      "status": "30 October 2017. Internet Draft (work in progress)",
+      "status": "21 July 2019. Internet Draft (work in progress)",
       "publisher": "IETF"
     },
     "STUN-PARAMETERS": {
@@ -168,7 +168,7 @@ var respecConfig = {
         "J. Uberti",
         "P. Saint-Andre"
       ],
-      "status": "11 September 2017. Internet Draft (work in progress)",
+      "status": "15 April 2018. Internet Draft (work in progress)",
       "publisher": "IETF"
     },
     "WEBRTC-QUIC": {
@@ -178,7 +178,7 @@ var respecConfig = {
         "Peter Thatcher",
         "Bernard Aboba"
       ],
-      "status": "21 December 2017 (work in progress)",
+      "status": "07 August 2019 (work in progress)",
       "publisher": "W3C"
     },
     "WEBRTC-STATS": {
@@ -188,7 +188,7 @@ var respecConfig = {
         "Harald Alvestrand",
         "Varun Singh"
       ],
-      "status": "29 October 2017 (work in progress)",
+      "status": "28 August 2019 (work in progress)",
       "publisher": "W3C"
     }
   }
