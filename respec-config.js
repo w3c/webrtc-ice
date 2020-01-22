@@ -50,6 +50,19 @@ var respecConfig = {
       "status": "03 October 2018 (work in progress)",
       "publisher": "W3C"
     },
+    "ICE-SDP": {
+      "title": "Session Description Protocol (SDP) Offer/Answer procedures for Interactive Connectivity Establishment (ICE)",
+      "href": "https://tools.ietf.org/html/draft-ietf-mmusic-ice-sip-sdp",
+      "authors": [
+        "M. Petit-Huguenin",
+        "S. Nandakumar",
+        "C. Holmberg",
+        "A. Keranen",
+        "R. Shpount"
+      ],
+      "status": "13 August 2019. Internet Draft (work in progress)",
+      "publisher": "IETF"
+    },
    "RFC6544": {
       "title": "TCP Candidates with Interactive Connectivity Establishment (ICE)",
       "href": "https://tools.ietf.org/html/rfc6544",
@@ -158,7 +171,7 @@ var respecConfig = {
         "Harald Alvestrand",
         "Varun Singh"
       ],
-      "status": "28 August 2019 (work in progress)",
+      "status": "15 January 2020 (work in progress)",
       "publisher": "W3C"
     }
   }
