@@ -75,14 +75,49 @@
     the <dfn><code>RTCIceCandidate</code></dfn> interface, the <dfn><code>RTCOauthCredential</code></dfn>,
     <dfn><code>RTCIceCandidateInit</code></dfn>, <dfn><code>RTCIceCandidatePair</code></dfn> and
     <dfn><code>RTCIceServer</code></dfn> dictionaries and the <dfn><code>RTCIceTransportPolicy</code></dfn>,
-    <dfn><code>RTCIceTransportState</code></dfn> and <dfn><code>RTCIceRole</code></dfn> enums are defined in [[!WEBRTC]].
-    The <dfn><code>RTCIceParameters</code></dfn> and <dfn><code>RTCIceCandidateComplete</code></dfn> dictionaries are
-    defined in [[!ORTC]].</p> 
+    <dfn><code>RTCIceTransportState</code></dfn> and <dfn><code>RTCIceRole</code></dfn> enums are defined in [[!WEBRTC]].</p> 
   </section>
   <section id="rtcicetransport*">
     <h2><code>RTCIceTransport</code> Extensions</h2>
     <p>The <code><a>RTCIceTransport</a></code> extensions allow construction of
-    an <code><a>RTCIceTransport</a></code> without offer/answer.</p> 
+    an <code><a>RTCIceTransport</a></code> without offer/answer.</p>
+    <section id="rtciceparameters*">
+    <h3><dfn>RTCIceParameters</dfn> Dictionary</h3>
+      <p>The <code>RTCIceParameters</code> dictionary includes the ICE username
+      fragment and password and other ICE-related parameters.</p>
+      <div>
+<pre class="idl">dictionary RTCIceParameters {
+             required DOMString usernameFragment;
+             required DOMString password;
+             boolean   iceLite;
+};</pre>
+        <section>
+          <h2>Dictionary <a class="idlType">RTCIceParameters</a> Members</h2>
+          <dl data-link-for="RTCIceParameters" data-dfn-for="RTCIceParameters" class=
+          "dictionary-members">
+            <dt><dfn data-idl><code>usernameFragment</code></dfn> of type <span class=
+            "idlMemberType"><a>DOMString</a></span>, required</dt>
+            <dd>
+              <p>ICE username fragment.</p>
+            </dd>
+            <dt><dfn data-idl><code>password</code></dfn> of type <span class=
+            "idlMemberType"><a>DOMString</a></span>, required</dt>
+            <dd>
+              <p>ICE password.</p>
+            </dd>
+            <dt><dfn data-idl><code>iceLite</code></dfn> of type <span class=
+            "idlMemberType"><a>boolean</a></span></dt>
+            <dd>
+              <p>If only ICE-lite is supported (<code>true</code>) or not
+              (<code>false</code> or unset). Since [[!RTCWEB-TRANSPORT]] Section 3.4
+              requires browser support for full ICE, <code><a>iceLite</a></code> will
+              only be <code>true</code> for a remote peer such as a gateway.
+              <code>getLocalParameters().iceLite</code> MUST NOT be set.</p>
+            </dd>
+          </dl>
+        </section>
+      </div>
+    </section>    
     <section id="rtcicegatheroptions*">
       <h3><dfn>RTCIceGatherOptions</dfn> Dictionary</h3>
       <p><code>RTCIceGatherOptions</code> provides options relating to the
