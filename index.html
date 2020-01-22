@@ -333,6 +333,12 @@ partial interface RTCIceTransport {
                   <a>throw</a> an <code>TypeError</code>.
                 </li>
                 <li>
+                  If <code><var>remoteParameters</var>.usernameFragment</code>
+                  or <code><var>remoteParameters</var>.password</code> does not
+                  conform to the syntax described in [[!ICE-SDP]] Section 5.4,
+                  <a>throw</a> a <code>SyntaxError</code>.
+                </li>
+                <li>
                   If <code>start()</code> is called again and
                   <code><var>role</var></code> is changed, <a>throw</a> an
                   <code>InvalidStateError</code>.
