@@ -154,7 +154,7 @@
 [Exposed=Window]
 partial interface RTCIceTransport {
     constructor();
-    void                      gather (optional RTCIceGatherOptions options = {gatherPolicy: "all"});
+    void                      gather (optional RTCIceGatherOptions options = {});
     void                      start (RTCIceParameters remoteParameters, optional RTCIceRole role = "controlled");
     void                      stop ();
     void                      addRemoteCandidate (RTCIceCandidateInit remoteCandidate);
