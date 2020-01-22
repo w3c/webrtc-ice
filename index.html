@@ -89,7 +89,7 @@
       gathering of ICE candidates.</p>
       <div>
         <pre class="idl">dictionary RTCIceGatherOptions {
-             RTCIceTransportPolicy     gatherPolicy;
+             required RTCIceTransportPolicy     gatherPolicy;
              sequence&lt;RTCIceServer&gt; iceServers;
 };</pre>
         <section>
@@ -115,8 +115,10 @@
     <section id="rtcicetransport-interface-definition*">
       <h3>Interface Definition</h3>
       <div>
-        <pre class="idl">[ Constructor (), Exposed=Window]
+        <pre class="idl">
+[Exposed=Window]
 partial interface RTCIceTransport {
+    constructor();
     void                      gather (RTCIceGatherOptions options);
     void                      start (RTCIceParameters remoteParameters, optional RTCIceRole role = "controlled");
     void                      stop ();
