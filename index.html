@@ -80,7 +80,13 @@
   <section id="rtcicetransport*">
     <h2><code>RTCIceTransport</code> Extensions</h2>
     <p>The <code><a>RTCIceTransport</a></code> extensions allow construction of
-    an <code><a>RTCIceTransport</a></code> without offer/answer.</p>
+    an <code><a>RTCIceTransport</a></code> without offer/answer. This specification
+    differs from the approach taken in [[ORTC]] in that it does not define a distinct
+    <code>RTCIceGatherer</code> object, instead adding methods for control of ICE
+    candidate gathering to <code><a>RTCIceTransport</a></code>. As a result, an
+    application can test for support of this specification by checking for the
+    <code><a>RTCIceTransport</a>.start()</code> method, and the absence of
+    an <code>RTCIceGatherer</code> object.</p>
     <section id="rtciceparameters*">
     <h3><dfn>RTCIceParameters</dfn> Dictionary</h3>
       <p>The <code>RTCIceParameters</code> dictionary includes the ICE username
