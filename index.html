@@ -69,13 +69,16 @@
       <dfn data-lt="resolve|resolves">resolved</dfn>, <dfn>pending</dfn> and
       <dfn>settled</dfn> used in the context of Promises are defined in
       [[!ECMASCRIPT-6.0]].</p>
-    <p>The <dfn><code>RTCDtlsTransport</code></dfn> and <dfn><code>RTCIceTransport</code></dfn> interfaces,
-    the <dfn><code>icecandidate</code></dfn>, <dfn><code>icecandidateerror</code></dfn>, <dfn><code>RTCPeerConnectionIceEvent</code></dfn> 
-    and <dfn><code>RTCPeerConnectionIceErrorEvent</code></dfn> events,  
-    the <dfn><code>RTCIceCandidate</code></dfn> interface, the <dfn><code>RTCOauthCredential</code></dfn>,
-    <dfn><code>RTCIceCandidateInit</code></dfn>, <dfn><code>RTCIceCandidatePair</code></dfn> and
-    <dfn><code>RTCIceServer</code></dfn> dictionaries and the <dfn><code>RTCIceTransportPolicy</code></dfn>,
-    <dfn><code>RTCIceTransportState</code></dfn> and <dfn><code>RTCIceRole</code></dfn> enums are defined in [[!WEBRTC]].</p> 
+    <p>The <dfn><code>RTCDtlsTransport</code></dfn> is defined in [[!WEBRTC]] Section 5.5.
+    The <dfn><code>RTCIceTransport</code></dfn> interface, the <dfn><code>getLocalParameters</code></dfn> method,
+    the <dfn><code>icecandidate</code></dfn>, <dfn><code>icecandidateerror</code></dfn>,
+    <dfn><code>RTCPeerConnectionIceEvent</code></dfn> and <dfn><code>RTCPeerConnectionIceErrorEvent</code></dfn> events,  
+    the <dfn><code>RTCIceCandidate</code></dfn> interface, <dfn><code>RTCIceCandidateInit</code></dfn>, 
+    <dfn><code>RTCIceCandidatePair</code></dfn> and <dfn><code>RTCIceServer</code></dfn> dictionaries, the
+    <dfn><code>RTCIceTransportPolicy</code></dfn>, <dfn><code>RTCIceTransportState</code></dfn> and
+    <dfn><code>RTCIceRole</code></dfn> enums and the <dfn>[[\IceRole]]</dfn>, <dfn>[[\IceTransportState]]</dfn>,
+    <dfn>[[\IceGathererState]]</dfn> and <dfn>[[\SelectedCandidatePair]]</dfn> internal slots
+    are defined in [[!WEBRTC]] Section 5.6.</p>
   </section>
   <section id="rtcicetransport*">
     <h2><code>RTCIceTransport</code> Extensions</h2>
@@ -173,6 +176,25 @@ partial interface RTCIceTransport {
           "constructors">
             <dt><code><a>RTCIceTransport</a></code></dt>
             <dd>
+              <p>
+                 When the constructor is invoked, the user agent MUST run the following steps:
+              </p>
+              <ol>
+                <li>
+                  Create an <code>RTCIceTransport</code> <var>transport</var>.
+                </li>
+                <li>
+                  Initialize <var>transport</var>'s <a>[[\IceTransportState]]</a>, <a>[[\IceGathererState]]</a>,
+                  <a>[[\SelectedCandidatePair]]</a> and <a>[[\IceRole]]</a> internal slots as specified in
+                  [[!WEBRTC]] Section 5.6.
+                </li>
+                <li>
+                  Initialize <var>transport</var>'s local ICE parameters. 
+                </li>
+                <li>
+                  Return <var>transport</var>.
+                </li>
+              </ol>
               <div>
                 <em>No parameters.</em>
               </div>
@@ -271,15 +293,6 @@ partial interface RTCIceTransport {
                    <code>DOMString</code>, then <a>throw</a> an
                    <code>InvalidAccessError</code> and abort these
                    steps.</p>
-                 </li>
-                 <li>
-                   <p>If <var>scheme name</var> is <code>turn</code> or
-                   <code>turns</code>, and
-                   <code><var>server</var>.credentialType</code> is
-                   <code>"oauth"</code>, and
-                   <code><var>server</var>.credential</code> is not an
-                   <a>RTCOAuthCredential</a>, then <a>throw</a> an
-                   <code>InvalidAccessError</code> and abort these steps.</p>
                  </li>
                </ol>
              </li>
