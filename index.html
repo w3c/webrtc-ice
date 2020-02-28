@@ -586,6 +586,7 @@ partial interface RTCIceTransport {
                 <em>Return type:</em> <code>sequence&lt;RTCIceCandidatePair&gt;</code>
               </div>
             </dd>
+    </section>
     <section id="rtcicecandidate-interface-definition*">
       <h3>Interface Definition</h3>
       <div>
@@ -621,7 +622,7 @@ partial dictionary RTCIceCandidateInit {
         <pre class="idl">[Exposed=Window]
 partial interface RTCIceCandidatePairInt {
     void setMinCheckInterval(double seconds);
-    void setFrozen(bool frozen);
+    void setFrozen(boolean frozen);
     void select();
     Promise<bool> nominate();
     Promise waitForReceiveTimeout(double seconds);	    
