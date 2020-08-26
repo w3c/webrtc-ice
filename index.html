@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <link href="webrtc.css" rel="stylesheet">
   <title>IceTransport Extensions for WebRTC</title>
-  <script class="remove" src="https://www.w3.org/Tools/respec/respec-w3c-common" type="text/javascript"></script>
+  <script class="remove" src="https://www.w3.org/Tools/respec/respec-w3c"></script>
   <script src="respec-config.js" class="remove"></script>
 </head>
 <body>
@@ -163,10 +163,10 @@
 [Exposed=Window]
 partial interface RTCIceTransport {
     constructor();
-    void                      gather (optional RTCIceGatherOptions options = {});
-    void                      start (RTCIceParameters remoteParameters, optional RTCIceRole role = "controlled");
-    void                      stop ();
-    void                      addRemoteCandidate (RTCIceCandidateInit remoteCandidate);
+    undefined                      gather (optional RTCIceGatherOptions options = {});
+    undefined                      start (RTCIceParameters remoteParameters, optional RTCIceRole role = "controlled");
+    undefined                      stop ();
+    undefined                      addRemoteCandidate (RTCIceCandidateInit remoteCandidate);
                     attribute EventHandler        onerror;
                     attribute EventHandler        onicecandidate;
 };</pre>

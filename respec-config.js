@@ -9,11 +9,9 @@ var respecConfig = {
   ],
   authors: [
   ],
-  wg: "Web Real-Time Communications Working Group",
-  wgURI: "https://www.w3.org/2011/04/webrtc/",
+  group: "webrtc",
   wgPublicList: "public-webrtc",
-  wgPatentURI:  "https://www.w3.org/2004/01/pp-impl/47318/status",
-  issueBase: "https://github.com/w3c/webrtc-ice/issues",
+  github: "https://github.com/w3c/webrtc-ice",
   otherLinks: [
     {
       key: "Participate",
@@ -21,10 +19,6 @@ var respecConfig = {
         {
           value: "Mailing list",
           href: "https://lists.w3.org/Archives/Public/public-webrtc/"
-        },
-        {
-          value: "Browse open issues",
-          href: "https://github.com/w3c/webrtc-ice/issues"
         },
         {
           value: "IETF ICE Working Group",
