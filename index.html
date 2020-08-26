@@ -10,7 +10,7 @@
 <body>
   <section id="abstract">
     <p>This document defines a set of ECMAScript APIs in WebIDL to allow construction
-    of an <code><a>RTCIceTransport</a></code> object in situations where this would not
+    of an {{RTCIceTransport}} object in situations where this would not
     otherwise be available, such as in a data exchange-only application. This specification
     is being developed in conjunction with protocol specifications developed by the IETF
     ICE Working Group.</p>
@@ -21,10 +21,10 @@
   <section class="informative" id="intro">
     <h2>Introduction</h2>
     <p>This specification extends the WebRTC specification [[WEBRTC]] to
-    allow construction of an <code><a>RTCIceTransport</a></code> object 
+    allow construction of an {{RTCIceTransport}} object 
     in situations where this would not otherwise be available, such as in a
     data exchange-only application that does not construct an
-    <code>RTCPeerConnection</code> object (e.g. <code>RTCDataChannel</code>
+    <code>RTCPeerConnection</code> object (e.g. {{RTCDataChannel}}
     in workers, WebRTC-QUIC, etc.).</p>  
   </section>
   <section id="conformance">
@@ -37,62 +37,34 @@
     easy to follow, and not intended to be performant.)</p>
     <p>Implementations that use ECMAScript to implement the APIs defined in
     this specification MUST implement them in a manner consistent with the
-    ECMAScript Bindings defined in the Web IDL specification [[!WEBIDL-1]], as
+    ECMAScript Bindings defined in the Web IDL specification [[WEBIDL]], as
     this specification uses that specification and terminology.</p>
   </section>
   <section>
     <h2>Terminology</h2>
-     <p>The <a href=
-      "http://dev.w3.org/html5/spec/webappapis.html#eventhandler"><code><dfn>EventHandler</dfn></code></a>
-      interface, representing a callback used for event handlers, and the <a href=
-      "http://dev.w3.org/html5/spec/webappapis.html#errorevent"><code><dfn>ErrorEvent</dfn></code></a>
-      interface are defined in [[!HTML51]].</p>
-      <p>The concepts <dfn><a href=
-      "http://dev.w3.org/html5/spec/webappapis.html#queue-a-task">queue a task</a></dfn>,
-      <dfn><a href=
-      "http://dev.w3.org/html5/spec/webappapis.html#fire-a-simple-event">fires a simple
-      event</a></dfn> and <dfn><a href=
-      "http://dev.w3.org/html5/spec/webappapis.html#networking-task-source">networking
-      task source</a></dfn> are defined in [[!HTML51]].</p>
-      <p>The terms <dfn>event</dfn>, <dfn><a href=
-      "http://dev.w3.org/html5/spec/webappapis.html#event-handlers">event
-      handlers</a></dfn> and <dfn><a href=
-      "http://dev.w3.org/html5/spec/webappapis.html#event-handler-event-type">event
-      handler event types</a></dfn> are defined in [[!HTML51]].</p>
-     <p>When referring to exceptions, the terms <dfn><a
-      href="https://www.w3.org/TR/WebIDL-1/#dfn-throw">throw</a></dfn> and
-      <dfn data-dfn-for="exception"><a href=
-      "https://www.w3.org/TR/WebIDL-1/#dfn-create-exception">create</a></dfn> are
-      defined in [[!WEBIDL-1]].</p>
-      <p>The terms <dfn data-lt="fulfill|fulfillment">fulfilled</dfn>, <dfn
-      data-lt="reject|rejection|rejecting">rejected</dfn>,
-      <dfn data-lt="resolve|resolves">resolved</dfn>, <dfn>pending</dfn> and
-      <dfn>settled</dfn> used in the context of Promises are defined in
-      [[!ECMASCRIPT-6.0]].</p>
-    <p>The <dfn><code>RTCDtlsTransport</code></dfn> is defined in [[!WEBRTC]] Section 5.5.
-    The <dfn><code>RTCIceTransport</code></dfn> interface, the <dfn><code>getLocalParameters</code></dfn> method,
+    <p>The {{RTCDtlsTransport}} is defined in [[WEBRTC]].
+    The {{RTCIceTransport}} interface, the {{RTCIceTransport/getLocalParameters()}} method,
     the <dfn><code>icecandidate</code></dfn>, <dfn><code>icecandidateerror</code></dfn>,
-    <dfn><code>RTCPeerConnectionIceEvent</code></dfn> and <dfn><code>RTCPeerConnectionIceErrorEvent</code></dfn> events,  
-    the <dfn><code>RTCIceCandidate</code></dfn> interface, <dfn><code>RTCIceCandidateInit</code></dfn>, 
-    <dfn><code>RTCIceCandidatePair</code></dfn> and <dfn><code>RTCIceServer</code></dfn> dictionaries, the
-    <dfn><code>RTCIceTransportPolicy</code></dfn>, <dfn><code>RTCIceTransportState</code></dfn> and
-    <dfn><code>RTCIceRole</code></dfn> enums and the <dfn>[[\IceRole]]</dfn>, <dfn>[[\IceTransportState]]</dfn>,
+    {{RTCPeerConnectionIceEvent}} and {{RTCPeerConnectionIceErrorEvent}} events,  
+    the {{RTCIceCandidate}} interface, {{RTCIceCandidateInit}} and {{RTCIceServer}} dictionaries, the
+    {{RTCIceTransportPolicy}}, {{RTCIceTransportState}} and
+    {{RTCIceRole}} enums and the <dfn>[[\IceRole]]</dfn>, <dfn>[[\IceTransportState]]</dfn>,
     <dfn>[[\IceGathererState]]</dfn> and <dfn>[[\SelectedCandidatePair]]</dfn> internal slots
     are defined in [[!WEBRTC]] Section 5.6.</p>
   </section>
   <section id="rtcicetransport*">
-    <h2><code>RTCIceTransport</code> Extensions</h2>
-    <p>The <code><a>RTCIceTransport</a></code> extensions allow construction of
-    an <code><a>RTCIceTransport</a></code> without offer/answer. This specification
+    <h2>{{RTCIceTransport}} Extensions</h2>
+    <p>The {{RTCIceTransport}} extensions allow construction of
+    an {{RTCIceTransport}} without offer/answer. This specification
     differs from the approach taken in [[ORTC]] in that it does not define a distinct
     <code>RTCIceGatherer</code> object, instead adding methods for control of ICE
-    candidate gathering to <code><a>RTCIceTransport</a></code>. As a result, an
+    candidate gathering to {{RTCIceTransport}}. As a result, an
     application can test for support of this specification by checking for the
-    <code><a>RTCIceTransport</a>.start()</code> method, and the absence of
+    {{RTCIceTransport.start()}} method, and the absence of
     an <code>RTCIceGatherer</code> object.</p>
     <section id="rtciceparameters*">
     <h3><dfn>RTCIceParameters</dfn> Dictionary</h3>
-      <p>The <code>RTCIceParameters</code> dictionary includes the ICE username
+      <p>The {{RTCIceParameters}} dictionary includes the ICE username
       fragment and password and other ICE-related parameters.</p>
       <div>
 <pre class="idl">dictionary RTCIceParameters {
@@ -101,27 +73,24 @@
              boolean   iceLite;
 };</pre>
         <section>
-          <h2>Dictionary <a class="idlType">RTCIceParameters</a> Members</h2>
+          <h2>Dictionary {{RTCIceParameters}} Members</h2>
           <dl data-link-for="RTCIceParameters" data-dfn-for="RTCIceParameters" class=
           "dictionary-members">
-            <dt><dfn data-idl><code>usernameFragment</code></dfn> of type <span class=
-            "idlMemberType">DOMString</span>, required</dt>
+            <dt><dfn data-idl>usernameFragment</dfn> of type {{DOMString}}, required</dt>
             <dd>
               <p>ICE username fragment.</p>
             </dd>
-            <dt><dfn data-idl><code>password</code></dfn> of type <span class=
-            "idlMemberType">DOMString</span>, required</dt>
+            <dt><dfn data-idl>password</dfn> of type {{DOMString}}, required</dt>
             <dd>
               <p>ICE password.</p>
             </dd>
-            <dt><dfn data-idl><code>iceLite</code></dfn> of type <span class=
-            "idlMemberType">boolean</span></dt>
+            <dt><dfn data-idl>iceLite</dfn> of type {{boolean}}</dt>
             <dd>
               <p>If only ICE-lite is supported (<code>true</code>) or not
-              (<code>false</code> or unset). Since [[!RTCWEB-TRANSPORT]] Section 3.4
-              requires browser support for full ICE, <code><a>iceLite</a></code> will
+              (<code>false</code> or unset). Since [[RTCWEB-TRANSPORT]] Section 3.4
+              requires browser support for full ICE, {{iceLite}} will
               only be <code>true</code> for a remote peer such as a gateway.
-              <code>getLocalParameters().iceLite</code> MUST NOT be set.</p>
+              {{RTCIceTransport/getLocalParameters()}}.{{iceLite}} MUST NOT be set.</p>
             </dd>
           </dl>
         </section>
@@ -129,7 +98,7 @@
     </section>    
     <section id="rtcicegatheroptions*">
       <h3><dfn>RTCIceGatherOptions</dfn> Dictionary</h3>
-      <p><code>RTCIceGatherOptions</code> provides options relating to the
+      <p>{{RTCIceGatherOptions}} provides options relating to the
       gathering of ICE candidates.</p>
       <div>
         <pre class="idl">dictionary RTCIceGatherOptions {
@@ -137,20 +106,18 @@
              sequence&lt;RTCIceServer&gt; iceServers;
 };</pre>
         <section>
-          <h2>Dictionary <a class="idlType">RTCIceGatherOptions</a> Members</h2>
+          <h2>Dictionary {{RTCIceGatherOptions}} Members</h2>
           <dl data-link-for="RTCIceGatherOptions" data-dfn-for="RTCIceGatherOptions"
           class="dictionary-members">
-            <dt><dfn><code>gatherPolicy</code></dfn> of type <span class=
-            "idlMemberType"><a>RTCIceTransportPolicy</a></span></dt>
+            <dt><dfn>gatherPolicy</dfn> of type {{RTCIceTransportPolicy}}</dt>
             <dd>
               <p>The ICE gather policy.</p>
             </dd>
-            <dt><dfn><code>iceServers</code></dfn> of type <span class=
-            "idlMemberType">sequence&lt;<a>RTCIceServer</a>&gt;</span></dt>
+            <dt><dfn>iceServers</dfn> of type sequence&lt;{{RTCIceServer}}&gt;</dt>
             <dd>
               <p>Additional ICE servers to be configured. Since implementations MAY
               provide default ICE servers, and applications can desire to restrict
-              communications to the local LAN, <var>iceServers</var> need not be set.</p>
+              communications to the local LAN, {{iceServers}} need not be set.</p>
             </dd>
           </dl>
         </section>
@@ -174,14 +141,14 @@ partial interface RTCIceTransport {
           <h2>Constructors</h2>
           <dl data-link-for="RTCIceTransport" data-dfn-for="RTCIceTransport" class=
           "constructors">
-            <dt><code><a>RTCIceTransport</a></code></dt>
+            <dt><dfn>constructor()</dfn></dt>
             <dd>
               <p>
                  When the constructor is invoked, the user agent MUST run the following steps:
               </p>
               <ol>
                 <li>
-                  Create an <code>RTCIceTransport</code> <var>transport</var>.
+                  Create an {{RTCIceTransport}} <var>transport</var>.
                 </li>
                 <li>
                   Initialize <var>transport</var>'s <a>[[\IceTransportState]]</a>, <a>[[\IceGathererState]]</a>,
@@ -205,19 +172,16 @@ partial interface RTCIceTransport {
           <h2>Attributes</h2>
           <dl data-link-for="RTCIceTransport" data-dfn-for="RTCIceTransport" class=
           "attributes">
-            <dt><dfn><code>onerror</code></dfn> of type <span class=
-            "idlAttrType"><a>EventHandler</a></span></dt>
+            <dt><dfn>onerror</dfn> of type {{EventHandler}}</dt>
             <dd>
               <p>This event handler, of event handler event type
-              <code><a>icecandidateerror</a></code>, <em class="rfc2119" title=
-              "MUST">MUST</em> be fired if an error occurs in the gathering of ICE
+              {{icecandidateerror}}, MUST be fired if an error occurs in the gathering of ICE
               candidates (such as if TURN credentials are invalid).</p>
             </dd>
-            <dt><dfn><code>onicecandidate</code></dfn> of type <span class=
-            "idlAttrType"><a>EventHandler</a></span></dt>
+            <dt><dfn>onicecandidate</dfn> of type {{EventHandler}}</dt>
             <dd>
               <p>This event handler utilizes the event handler event type
-              <code><a>icecandidate</a></code>.
+              {{icecandidate}}.
             </dd>
           </dl>
         </section>
@@ -225,19 +189,19 @@ partial interface RTCIceTransport {
           <h2>Methods</h2>
           <dl data-link-for="RTCIceTransport" data-dfn-for="RTCIceTransport" class=
           "methods">
-            <dt><dfn><code>gather</code></dfn></dt>
+            <dt><dfn>gather</dfn></dt>
             <dd>
               <p>Gather ICE candidates. If
-              <code>state</code> is <code>closed</code>, <a>throw</a> an
-              <code>InvalidStateError</code>.</p>
-     <p>To validate the <code>options</code> argument,
+              {{RTCIceTransport/state}} is {{RTCIceTransportState/"closed"}}, [=exception/throw=] an
+              {{InvalidStateError}}.</p>
+     <p>To validate the <var>options</var> argument,
      implementations MUST run the following steps:</p>
       <ol>
          <li>
            <p>Let <var>options</var> be the first argument.</p>
          </li>
          <li>
-           <p>Let <var>servers</var> be the value of <code><var>options</var>.iceServers</code>.</p>
+           <p>Let <var>servers</var> be the value of <code><var>options</var>.{{RTCIceGatherOptions/iceServers}}</code>.</p>
          </li>
          <li>
            <p>Let <var>validatedServers</var> be an empty list.</p>
@@ -249,7 +213,7 @@ partial interface RTCIceTransport {
                <p>Let <var>server</var> be the current list element.</p>
              </li>
              <li>
-               <p>If <code><var>server</var>.urls</code> is a string,
+               <p>If <code><var>server</var>.{{RTCIceServer/urls}}</code> is a string,
                let <code><var>server</var>.urls</code> be a list
                consisting of just that string.</p>
              </li>
@@ -259,39 +223,39 @@ partial interface RTCIceTransport {
                <ol>
                  <li>
                    <p>Parse the <var>url</var> using the generic URI syntax
-                   defined in [[!RFC3986]] and obtain the
+                   defined in [[RFC3986]] and obtain the
                    <var>scheme name</var>. If the parsing based
-                   on the syntax defined in [[!RFC3986]] fails,
-                   <a>throw</a> a <code>SyntaxError</code>.  If
+                   on the syntax defined in [[RFC3986]] fails,
+                   [=exception/throw=] a {{SyntaxError}}.  If
                    the <var>scheme name</var> is not implemented
-                   by the browser <a>throw</a> a
-                   <code>NotSupportedError</code>. If
+                   by the browser [=exception/throw=] a
+                   {{NotSupportedError}}. If
                    <var>scheme name</var> is <code>turn</code> or
                    <code>turns</code>, and parsing the
                    <var>url</var> using the syntax defined in
-                   [[!RFC7064]] fails, <a>throw</a> a
-                   <code>SyntaxError</code>. If <var>scheme
+                   [[RFC7064]] fails, [=exception/throw=] a
+                   {{SyntaxError}}. If <var>scheme
                    name</var> is <code>stun</code> or
                    <code>stuns</code>, and parsing the
                    <var>url</var> using the syntax defined in
-                   [[!RFC7065]] fails, <a>throw</a> a
-                   <code>SyntaxError</code>. </p>
+                   [[RFC7065]] fails, [=exception/throw=] a
+                   {{SyntaxError}}. </p>
                  </li>
                  <li>
                    <p>If <var>scheme name</var> is <code>turn</code> or
                    <code>turns</code>, and either of
-                   <code><var>server</var>.username</code> or
+                   <code><var>server</var>.{{RTCIceServer/username}}</code> or
                    <code><var>server</var>.credential</code> are omitted,
-                   then <a>throw</a> an <code>InvalidAccessError</code>.</p>
+                   then [=exception/throw=] an {{InvalidAccessError}}.</p>
                  </li>
                  <li>
                    <p>If <var>scheme name</var> is <code>turn</code> or
                    <code>turns</code>, and
-                   <code><var>server</var>.credentialType</code> is
-                   <code>"password"</code>, and
+                   <code><var>server</var>.{{RTCIceServer/credentialType}}</code> is
+                   {{RTCIceCredentialType/"password"}}, and
                    <code><var>server</var>.credential</code> is not a
-                   <code>DOMString</code>, then <a>throw</a> an
-                   <code>InvalidAccessError</code> and abort these
+                   {{DOMString}}, then [=exception/throw=] an
+                   {{InvalidAccessError}} and abort these
                    steps.</p>
                  </li>
                </ol>
@@ -305,198 +269,114 @@ partial interface RTCIceTransport {
              ICE servers list</dfn>.</p>
            </li>
          </ol>
-              <table class="parameters">
-                <tbody>
-                  <tr>
-                    <th>Parameter</th>
-                    <th>Type</th>
-                    <th>Nullable</th>
-                    <th>Optional</th>
-                    <th>Description</th>
-                  </tr>
-                  <tr>
-                    <td class="prmName">options</td>
-                    <td class="prmType"><code><a>RTCIceGatherOptions</a></code></td>
-                    <td class="prmNullFalse"><span role="img" aria-label=
-                    "False">&#10008;</span></td>
-                    <td class="prmOptTrue"><span role="img" aria-label=
-                    "True">&#10004;</span></td>
-                    <td class="prmDesc"></td>
-                  </tr>
-                </tbody>
-              </table>
-              <div>
-                <em>Return type:</em> <code>void</code>
-              </div>
             </dd>
-            <dt><dfn><code>start</code></dfn></dt>
+            <dt><dfn>start</dfn></dt>
             <dd>
-              <p>As noted in [[!RFC5245]] Section 7.1.2.3, an incoming connectivity check
+              <p>As noted in [[RFC5245]] Section 7.1.2.3, an incoming connectivity check
               utilizes the local/remote username fragment and the local password, whereas
               an outgoing connectivity check utilizes the local/remote username fragment
-              and the remote password. Since <code>start()</code> provides role
+              and the remote password. Since {{start()}} provides role
               information, as well as the remote username fragment and password, once
-              <code>start()</code> is called an <code><a>RTCIceTransport</a></code>
+              {{start()}} is called an {{RTCIceTransport}}
               object can respond to incoming connectivity checks based on its
-              configured role. Since <code>start()</code> enables candidate pairs
+              configured role. Since {{start()}} enables candidate pairs
               to be formed, it also enables initiating connectivity checks.
-              When <code>start()</code> is called, the following
+              When {{start()}} is called, the following
               steps MUST be run:</p>
               <ol>
                 <li>
-                  If <code>state</code> is <code>closed</code>, <a>throw</a> an <code>InvalidStateError</code>.
+                  If {{RTCIceTransport/state}} is {{RTCIceTransportState/"closed"}}, [=exception/throw=] an {{InvalidStateError}}.
                 </li>
                 <li>
-                  If <code><var>remoteParameters</var>.usernameFragment</code>
-                  or <code><var>remoteParameters</var>.password</code> is unset,
-                  <a>throw</a> an <code>TypeError</code>.
+                  If <code><var>remoteParameters</var>.{{RTCIceParameters/usernameFragment}}</code>
+                  or <code><var>remoteParameters</var>.{{RTCIceParameters/password}}</code> is unset,
+                  [=exception/throw=] an {{TypeError}}.
                 </li>
                 <li>
-                  If <code><var>remoteParameters</var>.usernameFragment</code>
-                  or <code><var>remoteParameters</var>.password</code> does not
-                  conform to the syntax described in [[!ICE-SDP]] Section 5.4,
-                  <a>throw</a> a <code>SyntaxError</code>.
+                  If <code><var>remoteParameters</var>.{{RTCIceParameters/usernameFragment}}</code>
+                  or <code><var>remoteParameters</var>.{{RTCIceParameters/password}}</code> does not
+                  conform to the syntax described in [[ICE-SDP]] Section 5.4,
+                  [=exception/throw=] a {{SyntaxError}}.
                 </li>
                 <li>
-                  If <code>start()</code> is called again and
-                  <code><var>role</var></code> is changed, <a>throw</a> an
-                  <code>InvalidStateError</code>.
+                  If {{start()}} is called again and
+                  {{RTCIceTransport/role}} is changed, [=exception/throw=] an
+                  {{InvalidStateError}}.
                 </li>
                 <li>
-                  If <code>start()</code> is called again with the same
-                  value of <code><var>remoteParameters</var></code>, this has
+                  If {{start()}} is called again with the same
+                  value of <var>remoteParameters</var>, this has
                   no effect.
                 </li>
                 <li>
-                  If <code>start()</code> is called for the first time, if
-                  there are remote candidates, set <code>state</code>
-                  to <code>checking</code> and start connectivity checks.
-                  If there are no remote candidates, <code>state</code>
-                  remains <code>new</code>.
+                  If {{start()}} is called for the first time, if
+                  there are remote candidates, set {{RTCIceTransport/state}}
+                  to {{RTCIceTransportState/"checking"}} and start connectivity checks.
+                  If there are no remote candidates, {{RTCIceTransport/state}}
+                  remains {{RTCIceTransportState/"new"}}.
                 </li>
                 <li>
-                  If <code>start()</code> is called again but the value
-                  of <code><var>remoteParameters</var></code> has changed,
+                  If {{start()}} is called again but the value
+                  of <var>remoteParameters</var> has changed,
                   local candidates are kept, remote candidates are flushed,
-                  candidate pairs are flushed and <code>state</code>
-                  transitions to <code>new</code>.
+                  candidate pairs are flushed and {{RTCIceTransport/state}}
+                  transitions to {{RTCIceTransportState/"new"}}.
                 </li>
                 <li>
-                  If <code>start()</code> is called again but the value of
+                  If {{start()}} is called again but the value of
                   <code><var>remoteParameters</var></code> is unchanged,
                   local candidates are flushed, candidate pairs are flushed,
                   new candidate pairs are formed with existing remote candidates,
-                  and <code>state</code> transitions to <code>checking</code>.
+                  and {{RTCIceTransport/state}} transitions to {{RTCIceTransportState/"checking"}}.
               </li>
               <li>
-                If <code>start()</code> is called again with new values of
-                <code><var>remoteParameters</var></code>, local
+                If {{start()}} is called again with new values of
+                <var>remoteParameters</var>, local
                 candidates are flushed, remote candidates are flushed,
-                candidate pairs are flushed and <code>state</code> transitions
-                to <code>new</code>.
+                candidate pairs are flushed and {{RTCIceTransport/state}} transitions
+                to {{RTCIceTransportState/"new"}}.
                </li>
               </ol>
-              <table class="parameters">
-                <tbody>
-                  <tr>
-                    <th>Parameter</th>
-                    <th>Type</th>
-                    <th>Nullable</th>
-                    <th>Optional</th>
-                    <th>Description</th>
-                  </tr>
-                  <tr>
-                    <td class="prmName">remoteParameters</td>
-                    <td class="prmType"><code><a>RTCIceParameters</a></code></td>
-                    <td class="prmNullFalse"><span role="img" aria-label=
-                    "False">&#10008;</span></td>
-                    <td class="prmOptFalse"><span role="img" aria-label=
-                    "False">&#10008;</span></td>
-                    <td class="prmDesc"></td>
-                  </tr>
-                  <tr>
-                    <td class="prmName">role</td>
-                    <td class="prmType"><code><a>RTCIceRole</a></code> = <code>controlled</code></td>
-                    <td class="prmNullFalse"><span role="img" aria-label=
-                    "False">&#10008;</span></td>
-                    <td class="prmOptTrue"><span role="img" aria-label=
-                    "True">&#10004;</span></td>
-                    <td class="prmDesc"></td>
-                  </tr>
-                </tbody>
-              </table>
-              <div>
-                <em>Return type:</em> <code>void</code>
-              </div>
             </dd>
-            <dt><dfn><code>stop</code></dfn></dt>
+            <dt><dfn>stop</dfn></dt>
             <dd>
               <p>Irreversibly stops the
-              <code><a>RTCIceTransport</a></code>. When
-              <code>stop</code> is called, the following
+              {{RTCIceTransport}}. When
+              {{stop}} is called, the following
               steps MUST be run:</p>
               <ol>
                 <li>
                   Let <var>iceTransport</var> be the
-                  <code><a>RTCIceTransport</a></code> object on
-                  which the <code>stop</code> method is invoked.
+                  {{RTCIceTransport}} object on
+                  which the {{stop}} method is invoked.
                 </li>
                 <li>
-                  If <code><var>iceTransport</var>.state</code> is
-                  <code>closed</code>, abort these steps.
+                  If <code><var>iceTransport</var>.{{RTCIceTransport/state}}</code> is
+                  {{RTCIceTransportState/"closed"}}, abort these steps.
                 </li>
                 <li>
-                  Set <code><var>iceTransport</var>.state</code> to
-                  <code>closed</code>.
+                  Set <code><var>iceTransport</var>.{{RTCIceTransport/state}}</code> to
+                  {{RTCIceTransportState/"closed"}}.
                 </li>
                 <li>
                   Fire a simple event <code>statechange</code>
                   at <var>iceTransport</var>.
                 </li>
               </ol>
-              <div>
-                <em>No parameters.</em>
-              </div>
-              <div>
-                <em>Return type:</em> <code>void</code>
-              </div>
             </dd>
-            <dt><dfn><code>addRemoteCandidate</code></dfn></dt>
+            <dt><dfn>addRemoteCandidate</dfn></dt>
             <dd>
               <p>Add a remote candidate associated with the remote
-              <code><a>RTCIceTransport</a></code>. If <code>state</code> is
-              <code>closed</code>, <a>throw</a> an <code>InvalidStateError</code>.
-              If <code>remoteCandidate</code> is malformed, <a>throw</a> an <code>OperationError</code>.
-              When the remote <code><a>RTCIceTransport</a></code> emits its
-              end-of-candidates indication (as described in [[!WEBRTC]] Section 4.8.2),
-              <code><a>addRemoteCandidate</a>()</code> should be called with
+              {{RTCIceTransport}}. If {{RTCIceTransport/state}} is
+              {{RTCIceTransportState/"closed"}}, [=exception/throw=] an {{InvalidStateError}}.
+              If <var>remoteCandidate</var> is malformed, [=exception/throw=] an {{OperationError}}.
+              When the remote {{RTCIceTransport}} emits its
+              end-of-candidates indication (as described in [[WEBRTC]] Section 4.8.2),
+              {{addRemoteCandidate()}} should be called with
               the end-of-candidates indication as an argument, so that the local
-              <code><a>RTCIceTransport</a></code> can know there are no more
-              remote candidates expected, and can enter the <code>completed</code>
+              {{RTCIceTransport}} can know there are no more
+              remote candidates expected, and can enter the {{RTCIceTransportState/"completed"}}
               state.</p>
-              <table class="parameters">
-                <tbody>
-                  <tr>
-                    <th>Parameter</th>
-                    <th>Type</th>
-                    <th>Nullable</th>
-                    <th>Optional</th>
-                    <th>Description</th>
-                  </tr>
-                  <tr>
-                    <td class="prmName">remoteCandidate</td>
-                    <td class="prmType"><code><a>RTCIceCandidateInit</a></code></td>
-                    <td class="prmNullFalse"><span role="img" aria-label=
-                    "False">&#10008;</span></td>
-                    <td class="prmOptFalse"><span role="img" aria-label=
-                    "False">&#10008;</span></td>
-                    <td class="prmDesc"></td>
-                  </tr>
-                </tbody>
-              </table>
-              <div>
-                <em>Return type:</em> <code>void</code>
-              </div>
             </dd>
           </dl>
         </section>
@@ -538,7 +418,7 @@ partial interface RTCIceTransport {
         communicate using ICE. This ensures that the UA can only send to
         partners who you have shared credentials with.</li>
         <li>An UA will always request ongoing permission to continue sending
-        using ICE consent [[!RFC7675]]. This enables a receiver to withdraw
+        using ICE consent [[RFC7675]]. This enables a receiver to withdraw
         consent to receive.</li>
         <li>An UA will always encrypt data, with strong per-session keying.</li>
         <li>An UA will always use congestion control. This ensures that QUIC
@@ -557,7 +437,7 @@ partial interface RTCIceTransport {
   </section>
   <section class="informative">
     <h2>Event summary</h2>
-    <p>The following events fire on <code><a>RTCIceTransport</a></code> objects:</p>
+    <p>The following events fire on {{RTCIceTransport}} objects:</p>
     <table style="border-width:0; width:60%" border="1">
       <tbody>
         <tr>
@@ -569,15 +449,15 @@ partial interface RTCIceTransport {
       <tbody>
         <tr>
           <td><code>icecandidateerror</code></td>
-          <td><code><a>RTCPeerConnectionIceErrorEvent</a></code></td>
-          <td>The <code><a>RTCIceTransport</a></code> object has experienced an ICE
+          <td>{{RTCPeerConnectionIceErrorEvent}}</td>
+          <td>The {{RTCIceTransport}} object has experienced an ICE
           gathering failure (such as an authentication failure with TURN
           credentials).</td>
         </tr>
         <tr>
           <td><code>icecandidate</code></td>
-          <td><code><a>RTCPeerConnectionIceEvent</a></code></td>
-          <td>A new <code><a>RTCIceCandidate</a></code> is made available to the
+          <td>{{RTCPeerConnectionIceEvent}}</td>
+          <td>A new {{RTCIceCandidate}} is made available to the
           script.</td>
         </tr>
       </tbody>
@@ -588,17 +468,13 @@ partial interface RTCIceTransport {
       <pre class="example highlight">
       </pre>
  </section>
- <section id="change-log*">
-    <h2>Change Log</h2>
-    <p>This section will be removed before publication.</p>
- </section>
  <section class="appendix">
     <h2>Acknowledgements</h2>
     <p>The editors wish to thank the Working Group chairs and Team Contact,
     Harald Alvestrand, Stefan H&aring;kansson, Bernard Aboba and Dominique
     Haza&euml;l-Massieux, for their support. Contributions to this
     specification were provided by Robin Raymond.</p>
-    <p>The <code><a>RTCIceTransport</a></code> object
+    <p>The {{RTCIceTransport}} object
     was initially described in the <a href="https://www.w3.org/community/ortc/">W3C ORTC CG</a>,
     and has been adapted for use in this specification.</p>
  </section>
