@@ -12,6 +12,7 @@ var respecConfig = {
   group: "webrtc",
   wgPublicList: "public-webrtc",
   github: "https://github.com/w3c/webrtc-ice",
+  testSuiteURI: "https://github.com/web-platform-tests/wpt/tree/master/webrtc-ice/",
   otherLinks: [
     {
       key: "Participate",
