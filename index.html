@@ -286,7 +286,7 @@ partial interface RTCIceTransport {
                 <li>
                   If <code><var>remoteParameters</var>.{{RTCIceParameters/usernameFragment}}</code>
                   or <code><var>remoteParameters</var>.{{RTCIceParameters/password}}</code> does not
-                  conform to the syntax described in [[ICE-SDP]] Section 5.4,
+                  conform to the syntax described in [[RFC8839]] Section 5.4,
                   [=exception/throw=] a {{SyntaxError}}.
                 </li>
                 <li>
@@ -380,7 +380,7 @@ partial interface RTCIceTransport {
     instead summarizes information already present in other parts of the
     specification. The overall security considerations of the
     APIs and protocols used in WebRTC are described in
-    [[RTCWEB-SECURITY-ARCH]].</p>
+    [[RFC8827]].</p>
     <section>
       <h2>Impact on same origin policy</h2>
       <p>This API, along with the QUIC API enables data to be communicated between
