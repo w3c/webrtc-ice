@@ -23,7 +23,7 @@ var respecConfig = {
         },
         {
           value: "IETF ICE Working Group",
-          href: "https://tools.ietf.org/wg/ice/"
+          href: "https://datatracker.ietf.org/wg/ice/"
         }
       ]
     }
@@ -46,28 +46,6 @@ var respecConfig = {
       "status": "03 October 2018 (work in progress)",
       "publisher": "W3C"
     },
-    "ICE-SDP": {
-      "title": "Session Description Protocol (SDP) Offer/Answer procedures for Interactive Connectivity Establishment (ICE)",
-      "href": "https://tools.ietf.org/html/draft-ietf-mmusic-ice-sip-sdp",
-      "authors": [
-        "M. Petit-Huguenin",
-        "S. Nandakumar",
-        "C. Holmberg",
-        "A. Keranen",
-        "R. Shpount"
-      ],
-      "status": "13 August 2019. Internet Draft (work in progress)",
-      "publisher": "IETF"
-    },
-    "RTCWEB-SECURITY-ARCH": {
-      "title": "WebRTC Security Architecture",
-      "href": "https://tools.ietf.org/html/draft-ietf-rtcweb-security-arch",
-      "authors": [
-        "E. Rescorla"
-      ],
-      "status": "21 July 2019. Internet Draft (work in progress)",
-      "publisher": "IETF"
-    },
     "STUN-PARAMETERS": {
       "authors":["IETF"],
       "href": "https://www.iana.org/assignments/stun-parameters/stun-parameters.xhtml#stun-parameters-6",
@@ -75,18 +53,6 @@ var respecConfig = {
       "status": "IANA Parameter Assignment",
       "title": "STUN Error Codes",
       "date": "April 2011"
-    },
-    "TRICKLE": {
-      "title": "Trickle ICE: Incremental Provisioning of Candidates for the Interactive Connectivity Establishment (ICE) Protocol",
-      "href": "https://tools.ietf.org/html/draft-ietf-ice-trickle",
-      "authors": [
-        "E. Ivov",
-        "E. Rescorla",
-        "J. Uberti",
-        "P. Saint-Andre"
-      ],
-      "status": "15 April 2018. Internet Draft (work in progress)",
-      "publisher": "IETF"
     }
   }
 }
