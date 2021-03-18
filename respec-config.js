@@ -43,7 +43,7 @@ var respecConfig = {
         "Bernard Aboba",
         "Justin Uberti"
       ],
-      "status": "03 October 2018 (work in progress)",
+      "status": "25 January 2021 (work in progress)",
       "publisher": "W3C"
     },
     "STUN-PARAMETERS": {
