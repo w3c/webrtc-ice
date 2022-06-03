@@ -430,23 +430,23 @@ partial interface RTCIceTransport {
     <h2>Event summary</h2>
     <p>The following events fire on {{RTCIceTransport}} objects:</p>
     <table class="simple">
-      <tbody>
+      <thead>
         <tr>
           <th>Event name</th>
           <th>Interface</th>
           <th>Fired when...</th>
         </tr>
-      </tbody>
+      </thead>
       <tbody>
         <tr>
-          <td><code>icecandidateerror</code></td>
+          <th scope=row><code>icecandidateerror</code></th>
           <td>{{RTCPeerConnectionIceErrorEvent}}</td>
           <td>The {{RTCIceTransport}} object has experienced an ICE
           gathering failure (such as an authentication failure with TURN
           credentials).</td>
         </tr>
         <tr>
-          <td><code>icecandidate</code></td>
+          <th scope=row><code>icecandidate</code></td>
           <td>{{RTCPeerConnectionIceEvent}}</td>
           <td>A new {{RTCIceCandidate}} is made available to the
           script.</td>
