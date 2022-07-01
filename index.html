@@ -40,18 +40,6 @@
     ECMAScript Bindings defined in the Web IDL specification [[WEBIDL]], as
     this specification uses that specification and terminology.</p>
   </section>
-  <section>
-    <h2>Terminology</h2>
-    <p>The {{RTCDtlsTransport}} is defined in [[WEBRTC]].
-    The {{RTCIceTransport}} interface, the {{RTCIceTransport/getLocalParameters()}} method,
-    the <dfn><code>icecandidate</code></dfn>, <dfn><code>icecandidateerror</code></dfn>,
-    {{RTCPeerConnectionIceEvent}} and {{RTCPeerConnectionIceErrorEvent}} events,  
-    the {{RTCIceCandidate}} interface, {{RTCIceCandidateInit}} and {{RTCIceServer}} dictionaries, the
-    {{RTCIceTransportPolicy}}, {{RTCIceTransportState}} and
-    {{RTCIceRole}} enums and the <dfn>[[\IceRole]]</dfn>, <dfn>[[\IceTransportState]]</dfn>,
-    <dfn>[[\IceGathererState]]</dfn> and <dfn>[[\SelectedCandidatePair]]</dfn> internal slots
-    are defined in [[!WEBRTC]] Section 5.6.</p>
-  </section>
   <section id="rtcicetransport*">
     <h2>{{RTCIceTransport}} Extensions</h2>
     <p>The {{RTCIceTransport}} extensions allow construction of
@@ -142,8 +130,8 @@ partial interface RTCIceTransport {
                   Create an {{RTCIceTransport}} <var>transport</var>.
                 </li>
                 <li>
-                  Initialize <var>transport</var>'s <a>[[\IceTransportState]]</a>, <a>[[\IceGathererState]]</a>,
-                  <a>[[\SelectedCandidatePair]]</a> and <a>[[\IceRole]]</a> internal slots as specified in
+                  Initialize <var>transport</var>.{{RTCIceTransport/[[IceTransportState]]}}, {{RTCIceTransport/[[IceGathererState]]}},
+                  {{RTCIceTransport/[[SelectedCandidatePair]]}} and {{RTCIceTransport/[[IceRole]]}} internal slots as specified in
                   [[!WEBRTC]] Section 5.6.
                 </li>
                 <li>
@@ -166,13 +154,13 @@ partial interface RTCIceTransport {
             <dt><dfn>onerror</dfn> of type {{EventHandler}}</dt>
             <dd>
               <p>This event handler, of event handler event type
-              {{icecandidateerror}}, MUST be fired if an error occurs in the gathering of ICE
+              {{RTCIceTransport/icecandidateerror}}, MUST be fired if an error occurs in the gathering of ICE
               candidates (such as if TURN credentials are invalid).</p>
             </dd>
             <dt><dfn>onicecandidate</dfn> of type {{EventHandler}}</dt>
             <dd>
               <p>This event handler utilizes the event handler event type
-              {{icecandidate}}.
+              {{RTCIceTransport/icecandidate}}.
             </dd>
           </dl>
         </section>
@@ -439,14 +427,14 @@ partial interface RTCIceTransport {
       </thead>
       <tbody>
         <tr>
-          <th scope=row><code>icecandidateerror</code></th>
+          <th scope=row><dfn  data-dfn-for="RTCIceTransport" data-dfn-type=event>icecandidateerror</dfn></th>
           <td>{{RTCPeerConnectionIceErrorEvent}}</td>
           <td>The {{RTCIceTransport}} object has experienced an ICE
           gathering failure (such as an authentication failure with TURN
           credentials).</td>
         </tr>
         <tr>
-          <th scope=row><code>icecandidate</code></td>
+          <th scope=row><dfn data-dfn-for="RTCIceTransport" data-dfn-type=event>icecandidate</dfn></td>
           <td>{{RTCPeerConnectionIceEvent}}</td>
           <td>A new {{RTCIceCandidate}} is made available to the
           script.</td>
