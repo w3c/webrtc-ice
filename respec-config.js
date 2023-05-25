@@ -29,6 +29,7 @@ var respecConfig = {
     }
   ],
   xref: ["webrtc", "html", "webidl"],
+  lint: { "no-unused-dfns": false },
   localBiblio: {
     "IANA-STUN-6": {
       "title": "STUN Error Codes",
