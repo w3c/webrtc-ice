@@ -201,41 +201,45 @@ partial interface RTCIceTransport {
                <code><var>server</var>.urls</code> run the following steps:
                <ol>
                  <li>
-                   <p>Parse the <var>url</var> using the generic URI syntax
-                   defined in [[RFC3986]] and obtain the
-                   <var>scheme name</var>. If the parsing based
-                   on the syntax defined in [[RFC3986]] fails,
-                   [=exception/throw=] a {{SyntaxError}}.  If
-                   the <var>scheme name</var> is not implemented
-                   by the browser [=exception/throw=] a
-                   {{NotSupportedError}}. If
-                   <var>scheme name</var> is <code>turn</code> or
-                   <code>turns</code>, and parsing the
-                   <var>url</var> using the syntax defined in
-                   [[RFC7064]] fails, [=exception/throw=] a
-                   {{SyntaxError}}. If <var>scheme
-                   name</var> is <code>stun</code> or
-                   <code>stuns</code>, and parsing the
-                   <var>url</var> using the syntax defined in
-                   [[RFC7065]] fails, [=exception/throw=] a
-                   {{SyntaxError}}. </p>
+                   <p>
+                     Parse the <var>url</var> using the generic URI syntax
+                     defined in [[!RFC3986]] and obtain the <var>scheme
+                     name</var>. If the parsing based on the syntax
+                     defined in [[!RFC3986]] fails, [= exception/throw =]
+                     a {{SyntaxError}}. If the <var>scheme name</var> is
+                     not implemented by the browser [= exception/throw =]
+                     a {{NotSupportedError}}. If <var>scheme name</var> is
+                     <code class="scheme">turn</code> or <code class=
+                     "scheme">turns</code>, and parsing the <var>url</var>
+                     using the syntax defined in [[!RFC7065]] fails, [=
+                     exception/throw =] a {{SyntaxError}}. If <var>scheme
+                     name</var> is <code class="scheme">stun</code> or
+                     <code class="scheme">stuns</code>, and parsing the
+                     <var>url</var> using the syntax defined in
+                     [[!RFC7064]] fails, [= exception/throw =] a
+                     {{SyntaxError}}.
+                   </p>
                  </li>
                  <li>
-                   <p>If <var>scheme name</var> is <code>turn</code> or
-                   <code>turns</code>, and either of
-                   <code><var>server</var>.{{RTCIceServer/username}}</code> or
-                   <code><var>server</var>.credential</code> are omitted,
-                   then [=exception/throw=] an {{InvalidAccessError}}.</p>
+                   <p>
+                     If <var>scheme name</var> is <code class=
+                     "scheme">turn</code> or <code class=
+                     "scheme">turns</code>, and either of
+                     <var>server</var>.{{RTCIceServer/username}} or
+                     <var>server</var>.{{RTCIceServer/credential}} are
+                     omitted, then [= exception/throw =] an
+                     {{InvalidAccessError}}.
+                   </p>
                  </li>
                  <li>
-                   <p>If <var>scheme name</var> is <code>turn</code> or
-                   <code>turns</code>, and
-                   <code><var>server</var>.{{RTCIceServer/credentialType}}</code> is
-                   {{RTCIceCredentialType/"password"}}, and
-                   <code><var>server</var>.credential</code> is not a
-                   {{DOMString}}, then [=exception/throw=] an
-                   {{InvalidAccessError}} and abort these
-                   steps.</p>
+                   <p>
+                     If <var>scheme name</var> is <code class=
+                     "scheme">turn</code> or <code class=
+                     "scheme">turns</code>, and
+                     <var>server</var>.{{RTCIceServer/credential}} is not
+                     a <span class="idlMemberType">DOMString</span>, then
+                     [= exception/throw =] an {{InvalidAccessError}}.
+                   </p>
                  </li>
                </ol>
              </li>
